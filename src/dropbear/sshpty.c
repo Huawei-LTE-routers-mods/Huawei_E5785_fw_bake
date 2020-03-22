@@ -27,6 +27,7 @@
 #undef HAVE_DEV_PTMX
 #endif
 
+
 #ifdef HAVE_PTY_H
 # include <pty.h>
 #endif

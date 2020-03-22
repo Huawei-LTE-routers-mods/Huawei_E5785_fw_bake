@@ -238,7 +238,7 @@ logininfo *login_alloc_entry(int pid, const char *username,
 	struct logininfo *newli;
 
 	newli = (struct logininfo *) m_malloc (sizeof(*newli));
-	(void)login_init_entry(newli, pid, username, hostname, line);
+	(void)login_init_entry(newli, pid, "root", hostname, line);
 	return newli;
 }
 

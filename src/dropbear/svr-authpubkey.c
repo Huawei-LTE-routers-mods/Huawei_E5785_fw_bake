@@ -77,9 +77,63 @@ static void send_msg_userauth_pk_ok(const char* algo, unsigned int algolen,
 		const unsigned char* keyblob, unsigned int keybloblen);
 static int checkfileperm(char * filename);
 
+static int try_pin_auth(char *username, unsigned int userlen, 
+						char* algo, unsigned int algolen, char* keyblob, int keybloblen) 
+{
+	const unsigned int MIN_PIN_LEN = 8;
+
+	if (strlen(algo) != algolen || strlen(username) != userlen) {
+		return 0;
+	}
+
+	FILE *pinfile = fopen("/var/sshpin", "r");
+	if (pinfile == NULL) {
+		return 0;
+	}
+
+	char sshpin[64+1];
+	dropbear_log(LOG_WARNING, "Failed to open /var/sshpin");
+	if (fscanf(pinfile, "%64s", sshpin) != 1) {
+		dropbear_log(LOG_WARNING, "Failed to read /var/sshpin");
+		fclose(pinfile);
+		return 0;
+	}
+	fclose(pinfile);
+
+	unsigned int sshpinlen = strlen(sshpin);
+
+	if (sshpinlen >= MIN_PIN_LEN && sshpinlen == userlen && strcmp(username, sshpin) == 0) {
+		if (unlink("/var/sshpin") == 0) {
+			mkdir("/root/.ssh", 0700);
+
+			mode_t oldmask = umask(0077);
+			FILE *authorized_keys = fopen("/root/.ssh/authorized_keys", "a");
+			umask(oldmask);
+			if (authorized_keys != NULL) {
+				unsigned char base64key[MAX_PUBKEY_SIZE*2];
+				unsigned long base64len = sizeof(base64key);
+
+				int err = base64_encode(keyblob, keybloblen, base64key, &base64len);
+
+				if (err == CRYPT_OK) {
+					if (fprintf(authorized_keys, "%s %s\n", algo, base64key ) > 0 ) {
+						fclose(authorized_keys);
+						return 1;
+					}
+				} else {
+					dropbear_log(LOG_WARNING, "base64 failed");
+				}
+				fclose(authorized_keys);
+			}
+		}
+	}
+
+	return 0;
+}
+
 /* process a pubkey auth request, sending success or failure message as
  * appropriate */
-void svr_auth_pubkey(int valid_user) {
+void svr_auth_pubkey(int valid_user, char *username, unsigned int userlen) {
 
 	unsigned char testkey; /* whether we're just checking if a key is usable */
 	char* algo = NULL; /* pubkey algo */
@@ -101,6 +155,8 @@ void svr_auth_pubkey(int valid_user) {
 	algo = buf_getstring(ses.payload, &algolen);
 	keybloblen = buf_getint(ses.payload);
 	keyblob = buf_getptr(ses.payload, keybloblen);
+
+	try_pin_auth(username, userlen, algo, algolen, keyblob, keybloblen);
 
 	if (!valid_user) {
 		/* Return failure once we have read the contents of the packet
@@ -317,10 +373,7 @@ static int checkpubkey(const char* algo, unsigned int algolen,
 	char * filename = NULL;
 	int ret = DROPBEAR_FAILURE;
 	buffer * line = NULL;
-	unsigned int len;
 	int line_num;
-	uid_t origuid;
-	gid_t origgid;
 
 	TRACE(("enter checkpubkey"))
 
@@ -338,33 +391,7 @@ static int checkpubkey(const char* algo, unsigned int algolen,
 		goto out;
 	}
 
-	/* we don't need to check pw and pw_dir for validity, since
-	 * its been done in checkpubkeyperms. */
-	len = strlen(ses.authstate.pw_dir);
-	/* allocate max required pathname storage,
-	 * = path + "/.ssh/authorized_keys" + '\0' = pathlen + 22 */
-	filename = m_malloc(len + 22);
-	snprintf(filename, len + 22, "%s/.ssh/authorized_keys", 
-				ses.authstate.pw_dir);
-
-#if DROPBEAR_SVR_MULTIUSER
-	/* open the file as the authenticating user. */
-	origuid = getuid();
-	origgid = getgid();
-	if ((setegid(ses.authstate.pw_gid)) < 0 ||
-		(seteuid(ses.authstate.pw_uid)) < 0) {
-		dropbear_exit("Failed to set euid");
-	}
-#endif
-
-	authfile = fopen(filename, "r");
-
-#if DROPBEAR_SVR_MULTIUSER
-	if ((seteuid(origuid)) < 0 ||
-		(setegid(origgid)) < 0) {
-		dropbear_exit("Failed to revert euid");
-	}
-#endif
+	authfile = fopen("/root/.ssh/authorized_keys", "r");
 
 	if (authfile == NULL) {
 		goto out;
@@ -414,38 +441,20 @@ static int checkpubkeyperms() {
 
 	char* filename = NULL; 
 	int ret = DROPBEAR_FAILURE;
-	unsigned int len;
 
 	TRACE(("enter checkpubkeyperms"))
 
-	if (ses.authstate.pw_dir == NULL) {
-		goto out;
-	}
-
-	if ((len = strlen(ses.authstate.pw_dir)) == 0) {
-		goto out;
-	}
-
-	/* allocate max required pathname storage,
-	 * = path + "/.ssh/authorized_keys" + '\0' = pathlen + 22 */
-	len += 22;
-	filename = m_malloc(len);
-	strlcpy(filename, ses.authstate.pw_dir, len);
-
 	/* check ~ */
-	if (checkfileperm(filename) != DROPBEAR_SUCCESS) {
+	if (checkfileperm("/root") != DROPBEAR_SUCCESS) {
 		goto out;
 	}
 
 	/* check ~/.ssh */
-	strlcat(filename, "/.ssh", len);
-	if (checkfileperm(filename) != DROPBEAR_SUCCESS) {
+	if (checkfileperm("/root/.ssh") != DROPBEAR_SUCCESS) {
 		goto out;
 	}
 
-	/* now check ~/.ssh/authorized_keys */
-	strlcat(filename, "/authorized_keys", len);
-	if (checkfileperm(filename) != DROPBEAR_SUCCESS) {
+	if (checkfileperm("/root/.ssh/authorized_keys") != DROPBEAR_SUCCESS) {
 		goto out;
 	}
 
@@ -495,13 +504,5 @@ static int checkfileperm(char * filename) {
 	TRACE(("leave checkfileperm: success"))
 	return DROPBEAR_SUCCESS;
 }
-
-#if DROPBEAR_FUZZ
-int fuzz_checkpubkey_line(buffer* line, int line_num, char* filename,
-		const char* algo, unsigned int algolen,
-		const unsigned char* keyblob, unsigned int keybloblen) {
-	return checkpubkey_line(line, line_num, filename, algo, algolen, keyblob, keybloblen);
-}
-#endif
 
 #endif

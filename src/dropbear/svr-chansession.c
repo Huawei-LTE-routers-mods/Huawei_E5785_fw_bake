@@ -940,12 +940,12 @@ static void execchild(const void *user_data) {
 	 * etc. This is hazardous, so should only be used for debugging. */
 #ifndef DEBUG_VALGRIND
 #ifdef HAVE_CLEARENV
-	clearenv();
+	//clearenv();
 #else /* don't HAVE_CLEARENV */
 	/* Yay for posix. */
-	if (environ) {
-		environ[0] = NULL;
-	}
+// 	if (environ) {
+// 		environ[0] = NULL;
+// 	}
 #endif /* HAVE_CLEARENV */
 #endif /* DEBUG_VALGRIND */
 
@@ -980,7 +980,7 @@ static void execchild(const void *user_data) {
 	addnewvar("LOGNAME", ses.authstate.pw_name);
 	addnewvar("HOME", ses.authstate.pw_dir);
 	addnewvar("SHELL", get_user_shell());
-	addnewvar("PATH", DEFAULT_PATH);
+	// addnewvar("PATH", DEFAULT_PATH);
 	if (chansess->term != NULL) {
 		addnewvar("TERM", chansess->term);
 	}

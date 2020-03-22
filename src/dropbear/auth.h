@@ -38,7 +38,8 @@ void send_msg_userauth_failure(int partial, int incrfail);
 void send_msg_userauth_success(void);
 void send_msg_userauth_banner(const buffer *msg);
 void svr_auth_password(int valid_user);
-void svr_auth_pubkey(int valid_user);
+// void svr_auth_pubkey(int valid_user);
+void svr_auth_pubkey(int valid_user, char *username, unsigned int userlen);
 void svr_auth_pam(int valid_user);
 
 #if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
