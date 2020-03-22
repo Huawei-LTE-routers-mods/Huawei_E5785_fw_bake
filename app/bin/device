@@ -1,0 +1,3 @@
+#!/system/bin/busybox sh
+
+LD_PRELOAD="/app/oled_hijack/web_hook.so" exec /app/bin/device.orig

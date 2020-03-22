@@ -1,0 +1,3 @@
+#!/system/bin/busybox sh
+
+LD_PRELOAD="/app/oled_hijack/oled_hijack.so" exec /app/bin/oled.orig
