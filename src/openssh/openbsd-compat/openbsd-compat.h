@@ -248,9 +248,9 @@ long long strtonum(const char *, long long, long long, const char **);
 #endif
 
 /* multibyte character support */
-#ifndef HAVE_MBLEN
-# define mblen(x, y)	(1)
-#endif
+//#ifndef HAVE_MBLEN
+//# define mblen(x, y)	(1)
+//#endif
 
 #ifndef HAVE_WCWIDTH
 # define wcwidth(x)	(((x) >= 0x20 && (x) <= 0x7e) ? 1 : -1)

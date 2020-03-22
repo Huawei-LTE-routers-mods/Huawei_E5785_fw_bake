@@ -31,7 +31,12 @@ explicit_bzero(void *p, size_t n)
  * Indirect bzero through a volatile pointer to hopefully avoid
  * dead-store optimisation eliminating the call.
  */
-static void (* volatile ssh_bzero)(void *, size_t) = bzero;
+static void _bzero (void *s, size_t len)
+{
+  memset (s, '\0', len);
+}
+
+static void (* volatile ssh_bzero)(void *, size_t) = _bzero;
 
 void
 explicit_bzero(void *p, size_t n)

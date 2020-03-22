@@ -377,21 +377,21 @@ mbtowc(wchar_t *pwc, const char *s, size_t n)
 }
 #endif
 
-#ifndef HAVE_LLABS
-long long
-llabs(long long j)
-{
-	return (j < 0 ? -j : j);
-}
-#endif
+// #ifndef HAVE_LLABS
+// long long
+// llabs(long long j)
+// {
+// 	return (j < 0 ? -j : j);
+// }
+// #endif
 
-#ifndef HAVE_BZERO
-void
-bzero(void *b, size_t n)
-{
-	(void)memset(b, 0, n);
-}
-#endif
+// #ifndef HAVE_BZERO
+// void
+// bzero(void *b, size_t n)
+// {
+// 	(void)memset(b, 0, n);
+// }
+// #endif
 
 #ifndef HAVE_RAISE
 int

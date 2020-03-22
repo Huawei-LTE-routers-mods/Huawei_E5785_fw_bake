@@ -152,9 +152,9 @@ void errx(int, const char *, ...) __attribute__((format(printf, 2, 3)));
 void warn(const char *, ...) __attribute__((format(printf, 1, 2)));
 #endif
 
-#ifndef HAVE_LLABS
-long long llabs(long long);
-#endif
+// #ifndef HAVE_LLABS
+// long long llabs(long long);
+// #endif
 
 #if defined(HAVE_DECL_BZERO) && HAVE_DECL_BZERO == 0
 void bzero(void *, size_t);

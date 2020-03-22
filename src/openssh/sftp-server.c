@@ -19,15 +19,11 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
-#endif
-#ifdef HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
-#endif
-#ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
-#endif
+
+#include <sys/types.h>
 
 #include <dirent.h>
 #include <errno.h>
@@ -39,6 +35,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdarg.h>
+
 
 #include "xmalloc.h"
 #include "sshbuf.h"
@@ -907,6 +904,8 @@ attrib_to_ts(const Attrib *a)
 	return ts;
 }
 
+int truncate(const char *path, off_t length);
+
 static void
 process_setstat(u_int32_t id)
 {
@@ -981,11 +980,11 @@ process_fsetstat(u_int32_t id)
 		}
 		if (a.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
 			logit("set \"%s\" mode %04o", name, a.perm);
-#ifdef HAVE_FCHMOD
+// #ifdef HAVE_FCHMOD
 			r = fchmod(fd, a.perm & 07777);
-#else
-			r = chmod(name, a.perm & 07777);
-#endif
+// #else
+			// r = chmod(name, a.perm & 07777);
+// #endif
 			if (r == -1)
 				status = errno_to_portable(errno);
 		}
@@ -996,22 +995,22 @@ process_fsetstat(u_int32_t id)
 			strftime(buf, sizeof(buf), "%Y%m%d-%H:%M:%S",
 			    localtime(&t));
 			logit("set \"%s\" modtime %s", name, buf);
-#ifdef HAVE_FUTIMES
-			r = futimes(fd, attrib_to_tv(&a));
-#else
+// #ifdef HAVE_FUTIMES
+			// r = futimes(fd, attrib_to_tv(&a));
+// #else
 			r = utimes(name, attrib_to_tv(&a));
-#endif
+// #endif
 			if (r == -1)
 				status = errno_to_portable(errno);
 		}
 		if (a.flags & SSH2_FILEXFER_ATTR_UIDGID) {
 			logit("set \"%s\" owner %lu group %lu", name,
 			    (u_long)a.uid, (u_long)a.gid);
-#ifdef HAVE_FCHOWN
+// #ifdef HAVE_FCHOWN
 			r = fchown(fd, a.uid, a.gid);
-#else
-			r = chown(name, a.uid, a.gid);
-#endif
+// #else
+			// r = chown(name, a.uid, a.gid);
+// #endif
 			if (r == -1)
 				status = errno_to_portable(errno);
 		}
@@ -1207,12 +1206,12 @@ process_rename(u_int32_t id)
 		/* Race-free rename of regular files */
 		if (link(oldpath, newpath) == -1) {
 			if (errno == EOPNOTSUPP || errno == ENOSYS
-#ifdef EXDEV
+// #ifdef EXDEV
 			    || errno == EXDEV
-#endif
-#ifdef LINK_OPNOTSUPP_ERRNO
-			    || errno == LINK_OPNOTSUPP_ERRNO
-#endif
+// #endif
+// #ifdef LINK_OPNOTSUPP_ERRNO
+			    // || errno == LINK_OPNOTSUPP_ERRNO
+// #endif
 			    ) {
 				struct stat st;
 
@@ -1564,7 +1563,7 @@ sftp_server_usage(void)
 }
 
 int
-sftp_server_main(int argc, char **argv, struct passwd *user_pw)
+sftp_server_main(int argc, char **argv)
 {
 	fd_set *rset, *wset;
 	int i, r, in, out, max, ch, skipargs = 0, log_stderr = 0;
@@ -1573,13 +1572,16 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	char *cp, *homedir = NULL, uidstr[32], buf[4*4096];
 	long mask;
 
+
 	extern char *optarg;
 	extern char *__progname;
 
 	__progname = ssh_get_progname(argv[0]);
 	log_init(__progname, log_level, log_facility, log_stderr);
 
-	pw = pwcopy(user_pw);
+	// fprintf(stderr, "BAY user_pw %p\n", user_pw);
+	// pw = pwcopy(user_pw);
+	// return 42;
 
 	while (!skipargs && (ch = getopt(argc, argv,
 	    "d:f:l:P:p:Q:u:cehR")) != -1) {
@@ -1619,11 +1621,11 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 				error("Invalid log facility \"%s\"", optarg);
 			break;
 		case 'd':
-			cp = tilde_expand_filename(optarg, user_pw->pw_uid);
+			cp = tilde_expand_filename(optarg, 0);
 			snprintf(uidstr, sizeof(uidstr), "%llu",
-			    (unsigned long long)pw->pw_uid);
-			homedir = percent_expand(cp, "d", user_pw->pw_dir,
-			    "u", user_pw->pw_name, "U", uidstr, (char *)NULL);
+			    (unsigned long long)0);
+			homedir = percent_expand(cp, "d", "/root",
+			    "u", "root", "U", uidstr, (char *)NULL);
 			free(cp);
 			break;
 		case 'p':
@@ -1674,16 +1676,13 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	} else
 		client_addr = xstrdup("UNKNOWN");
 
-	logit("session opened for local user %s from [%s]",
-	    pw->pw_name, client_addr);
-
 	in = STDIN_FILENO;
 	out = STDOUT_FILENO;
 
-#ifdef HAVE_CYGWIN
-	setmode(in, O_BINARY);
-	setmode(out, O_BINARY);
-#endif
+// #ifdef HAVE_CYGWIN
+// 	setmode(in, O_BINARY);
+// 	setmode(out, O_BINARY);
+// #endif
 
 	max = 0;
 	if (in > max)
