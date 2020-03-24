@@ -1,6 +1,9 @@
 import cpio
 import os
 
+SYSTEM_FILES_RENAME = [
+
+]
 
 SYSTEM_FILES = [
     ("bin/busyboxx", 0, 0, 0o104775),
@@ -17,11 +20,13 @@ SYSTEM_FILES = [
     ("etc/autorun.sh", 0, 0, 0o100500),
 ]
 
+APP_FILES_RENAME = [
+    ("bin/device", "bin/device.orig"),
+    ("bin/oled", "bin/oled.orig"),
+]
 
 APP_FILES = [
     ("config/wifi/countryChannel.xml", 1000, 1000, 0o100775),
-    ("bin/device.orig", 1000, 1000, 0o100775),
-    ("bin/oled.orig", 1000, 1000, 0o100775),
     ("bin/device", 1000, 1000, 0o100775),
     ("bin/oled", 1000, 1000, 0o100775),
     ("oled_hijack", 1000, 1000, 0o40755),
@@ -36,14 +41,22 @@ APP_FILES = [
 
 system = cpio.Cpio("System.bin")
 os.chdir("system")
+
+for file_from, file_to in SYSTEM_FILES_RENAME:
+    system.rename_file(file_from, file_to)
 for file, uid, gid, mode in SYSTEM_FILES:
     system.inject_fs_file(file, uid, gid, mode)
+
 os.chdir("..")
 system.write_chunks("System.mod.bin")
 
 app = cpio.Cpio("APP.bin")
 os.chdir("app")
+
+for file_from, file_to in APP_FILES_RENAME:
+    app.rename_file(file_from, file_to)
 for file, uid, gid, mode in APP_FILES:
     app.inject_fs_file(file, uid, gid, mode)
+
 os.chdir("..")
 app.write_chunks("APP.mod.bin")

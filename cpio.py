@@ -158,3 +158,26 @@ class Cpio:
             data = b""
 
         self.inject_file(filename, mode, uid, gid, fileinfo.st_mtime, data)
+
+    def get_chunks_by_filename(self, filename):
+        if isinstance(filename, str):
+            filename = filename.encode() + b"\x00"
+        return [chunk for chunk in self.chunks if chunk.filename == filename]
+
+
+    def rename_file(self, from_file, to_file):
+        if isinstance(from_file, str):
+            from_file = from_file.encode() + b"\x00"
+        if isinstance(to_file, str):
+            to_file = to_file.encode() + b"\x00"
+
+        chunks_file = self.get_chunks_by_filename(from_file)
+        if not chunks_file:
+            raise ValueError(f"file {from_file} is not exists while trying to rename it")
+        elif len(chunks_file) > 1:
+            raise ValueError(f"more than one {from_file} while trying to rename it")
+        chunk = chunks_file[0]
+
+        self.delete_chunk_by_filename(from_file)
+
+        self.inject_file(to_file, chunk.mode, chunk.uid, chunk.gid, chunk.mtime, chunk.data)
