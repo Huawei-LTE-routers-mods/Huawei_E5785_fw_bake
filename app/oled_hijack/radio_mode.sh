@@ -14,24 +14,27 @@ print_item () {
     DESC="$1"
     MODE="$2"
     CURRENT_MODE="$3"
+    SHOW_IF_NOT_SELECTED="$4"
 
     if [[ "$CURRENT_MODE" == "$MODE" ]]; then
         echo "item: <$DESC>:$MODE"
     else
-        echo "item:  $DESC :$MODE"
+        if [ "$SHOW_IF_NOT_SELECTED" -eq 1 ]; then
+            echo "item:  $DESC :$MODE"
+        fi
     fi
 }
 
 if [ "$#" -eq 0 ]; then
     CURRENT_MODE="$($ATC 'AT^SYSCFGEX?' | grep 'SYSCFGEX' | sed 's/^[^"]*"\([^"]*\)".*/\1/')"
     echo "text:Pick the mode:"
-    print_item "Auto" "00" "$CURRENT_MODE"
-    print_item "4G" "03" "$CURRENT_MODE"
-    print_item "3G" "02" "$CURRENT_MODE"
-    print_item "2G" "01" "$CURRENT_MODE"
-    print_item "4G or 3G" "0302" "$CURRENT_MODE"
-    print_item "4G or 3G or 2G" "0301" "$CURRENT_MODE"
-    print_item "3G or 2G" "0201" "$CURRENT_MODE"
+    print_item "Auto" "00" "$CURRENT_MODE" 1
+    print_item "4G" "03" "$CURRENT_MODE" 1
+    print_item "3G" "02" "$CURRENT_MODE" 1
+    print_item "2G" "01" "$CURRENT_MODE" 0
+    print_item "4G or 3G" "0302" "$CURRENT_MODE" 1
+    print_item "4G or 3G or 2G" "0301" "$CURRENT_MODE" 0
+    print_item "3G or 2G" "0201" "$CURRENT_MODE" 0
 fi
 
 if [ "$#" -eq 1 ]; then

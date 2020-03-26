@@ -34,7 +34,7 @@ APP_FILES = [
     ("oled_hijack/oled_hijack.so", 1000, 1000, 0o100775),
     ("oled_hijack/web_hook.so", 1000, 1000, 0o100775),
     ("oled_hijack/web_hook_client", 1000, 1000, 0o100775),
-    ("oled_hijack/fix_ttl.sh", 1000, 1000, 0o100775),
+    ("oled_hijack/ttl_and_imei.sh", 1000, 1000, 0o100775),
     ("oled_hijack/no_battery_mode.sh", 1000, 1000, 0o100775),
     ("oled_hijack/radio_mode.sh", 1000, 1000, 0o100775),
 ]
