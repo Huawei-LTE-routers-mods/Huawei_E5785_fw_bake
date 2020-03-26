@@ -14,6 +14,7 @@ SYSTEM_FILES = [
     ("xbin/sftp-server", 0, 0, 0o100755),
     ("xbin/scp", 0, 0, 0o100755),
     ("xbin/balong-nvtool", 0, 0, 0o100755),
+    ("xbin/imei_generator", 0, 0, 0o100755),
     ("etc/fix_ttl.sh", 0, 0, 0o100755),
     ("etc/fix_ttl", 0, 0, 0o100774),
     ("etc/disable_spe", 0, 0, 0o100774),
