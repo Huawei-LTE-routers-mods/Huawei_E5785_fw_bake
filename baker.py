@@ -38,6 +38,7 @@ APP_FILES = [
     ("oled_hijack/ttl_and_imei.sh", 1000, 1000, 0o100775),
     ("oled_hijack/no_battery_mode.sh", 1000, 1000, 0o100775),
     ("oled_hijack/radio_mode.sh", 1000, 1000, 0o100775),
+    ("oled_hijack/user_scripts.sh", 1000, 1000, 0o100775),
     ("prometheus", 1000, 1000, 0o40755),
     ("prometheus/tinyproxy.conf", 1000, 1000, 0o100775),
     ("prometheus/start_exporter.sh", 1000, 1000, 0o100775),
