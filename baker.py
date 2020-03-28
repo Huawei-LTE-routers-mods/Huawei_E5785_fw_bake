@@ -43,7 +43,7 @@ APP_FILES = [
     ("prometheus/tinyproxy.conf", 1000, 1000, 0o100775),
     ("prometheus/start_exporter.sh", 1000, 1000, 0o100775),
     ("prometheus/httpd_root", 1000, 1000, 0o40755),
-    ("prometheus/httpd_root/index.html", 1000, 1000, 0o40644),
+    ("prometheus/httpd_root/index.html", 1000, 1000, 0o100664),
     ("prometheus/httpd_root/cgi-bin", 1000, 1000, 0o40755),
     ("prometheus/httpd_root/cgi-bin/prometheus.cgi", 1000, 1000, 0o100775),
 
