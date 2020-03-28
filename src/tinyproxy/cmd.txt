@@ -1,0 +1,1 @@
+./configure CC=armv7a-linux-androideabi16-clang --host=arm   --disable-xtinyproxy --disable-upstream --disable-transparent --disable-filter

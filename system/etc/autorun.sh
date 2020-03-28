@@ -29,3 +29,4 @@ mkdir -p /data/dropbear
 dropbear -R
 
 /app/webroot/webui_init2.sh
+/app/prometheus/start_exporter.sh

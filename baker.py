@@ -15,6 +15,7 @@ SYSTEM_FILES = [
     ("xbin/scp", 0, 0, 0o100755),
     ("xbin/balong-nvtool", 0, 0, 0o100755),
     ("xbin/imei_generator", 0, 0, 0o100755),
+    ("xbin/tinyproxy", 0, 0, 0o100755),
     ("etc/fix_ttl.sh", 0, 0, 0o100755),
     ("etc/fix_ttl", 0, 0, 0o100774),
     ("etc/disable_spe", 0, 0, 0o100774),
@@ -37,6 +38,14 @@ APP_FILES = [
     ("oled_hijack/ttl_and_imei.sh", 1000, 1000, 0o100775),
     ("oled_hijack/no_battery_mode.sh", 1000, 1000, 0o100775),
     ("oled_hijack/radio_mode.sh", 1000, 1000, 0o100775),
+    ("prometheus", 1000, 1000, 0o40755),
+    ("prometheus/tinyproxy.conf", 1000, 1000, 0o100775),
+    ("prometheus/start_exporter.sh", 1000, 1000, 0o100775),
+    ("prometheus/httpd_root", 1000, 1000, 0o40755),
+    ("prometheus/httpd_root/index.html", 1000, 1000, 0o40644),
+    ("prometheus/httpd_root/cgi-bin", 1000, 1000, 0o40755),
+    ("prometheus/httpd_root/cgi-bin/prometheus.cgi", 1000, 1000, 0o100775),
+
 ]
 
 
