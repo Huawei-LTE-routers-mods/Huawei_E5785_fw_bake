@@ -1,4 +1,4 @@
-#!/system/bin/busybox sh
+#!/bin/sh
 
 ttl=`cat /system/etc/fix_ttl`
 

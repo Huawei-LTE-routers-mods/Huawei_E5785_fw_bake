@@ -19,10 +19,17 @@ SYSTEM_FILES = [
     ("xbin/balong-nvtool", 0, 0, ATTR_IS_FILE | 0o755),
     ("xbin/imei_generator", 0, 0, ATTR_IS_FILE | 0o755),
     ("xbin/tinyproxy", 0, 0, ATTR_IS_FILE | 0o755),
-    ("etc/fix_ttl.sh", 0, 0, ATTR_IS_FILE | 0o755),
+    ("xbin/openvpn", 0, 0, ATTR_IS_FILE | 0o755),
+    ("xbin/wg", 0, 0, ATTR_IS_FILE | 0o755),
+    ("modules", 0, 0, ATTR_IS_DIR | 0o755),
+    ("modules/ip_tunnel.ko", 0, 0, ATTR_IS_FILE | 0o755),
+    ("modules/wireguard.ko", 0, 0, ATTR_IS_FILE | 0o755),
     ("etc/fix_ttl", 0, 0, ATTR_IS_FILE | 0o774),
     ("etc/disable_spe", 0, 0, ATTR_IS_FILE | 0o774),
+    ("etc/vpn_gen_configs.sh", 0, 0, ATTR_IS_FILE | 0o755),
     ("etc/autorun.sh", 0, 0, ATTR_IS_FILE | 0o500),
+    ("etc/autorun.d", 0, 0, ATTR_IS_DIR | 0o755),
+    ("etc/autorun.d/fix_ttl.sh", 0, 0, ATTR_IS_FILE | 0o755),
 ]
 
 APP_FILES_RENAME = [
@@ -42,6 +49,8 @@ APP_FILES = [
     ("oled_hijack/no_battery_mode.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("oled_hijack/radio_mode.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("oled_hijack/user_scripts.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("oled_hijack/VPN.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("oled_hijack/example.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("prometheus", 1000, 1000, ATTR_IS_DIR | 0o755),
     ("prometheus/tinyproxy.conf", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("prometheus/start_exporter.sh", 1000, 1000, ATTR_IS_FILE | 0o775),

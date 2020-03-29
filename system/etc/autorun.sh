@@ -16,7 +16,9 @@ g_bAtDataLocked=`grep -w -m1 "g_bAtDataLocked" /proc/kallsyms`
 addr=0x${g_bAtDataLocked:0:8}
 dd if=/dev/zero of=/dev/kmem bs=1 seek=$((addr)) count=4
 
-/system/etc/fix_ttl.sh
+for FILE in /etc/autorun.d/*.sh; do
+    /bin/sh "$FILE"
+done
 
 /etc/huawei_process_start
 
