@@ -10,6 +10,8 @@ if [ $temp -eq -30 ]; then
 	echo -ne '\x00\x00\x82\xe5' | dd of=/dev/mem bs=1 seek=2797765824
 fi
 
+mkdir /dev/net && busyboxx mknod /dev/net/tun c 10 200
+
 /app/webroot/webui_init1.sh
 
 g_bAtDataLocked=`grep -w -m1 "g_bAtDataLocked" /proc/kallsyms`
