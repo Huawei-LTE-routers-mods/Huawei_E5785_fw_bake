@@ -29,7 +29,7 @@ PublicKey = ${SERVER_PUBLIC_KEY}
 Endpoint = ${SERVER}:${PORT}
 AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 25
-" > vpn.conf
+" > /online/vpn.conf
 
 echo "Client config is written to /online/vpn.conf"
 echo ""
