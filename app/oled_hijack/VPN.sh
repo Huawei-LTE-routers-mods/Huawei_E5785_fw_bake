@@ -54,7 +54,7 @@ case "$ACTION" in
         fi
     ;;
     VPN_ENABLE)
-        if [ ! -f "1$FILE" ]; then
+        if [ ! -f "$FILE" ]; then
             echo "text: Config needed"
             echo "text: "
             echo "text: Use SSH and run"
