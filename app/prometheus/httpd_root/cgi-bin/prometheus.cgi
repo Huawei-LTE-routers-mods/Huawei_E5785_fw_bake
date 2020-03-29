@@ -54,7 +54,7 @@ handle_net_stat_line() {
         STAT_IDX="$((STAT_IDX+1))"
         STAT_STR=""
         case "$STAT_IDX" in
-            0) INTERFACE=${VALUE/:/}; continue ;;
+            0) INTERFACE="${VALUE//[!a-zA-Z0-9_]/}"; continue ;;
             1) STAT_STR="receive_bytes";;
             2) STAT_STR="receive_packets";;
             9) STAT_STR="transmit_bytes";;
