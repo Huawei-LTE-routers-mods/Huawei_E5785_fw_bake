@@ -71,7 +71,7 @@ class Cpio:
         chunk.check = int(self.f.read(8), 16)
 
         chunk.filename = self.f.read(chunk.namesize)
-        
+
         padding1_len = - (110 + chunk.namesize) % 4
         self.f.read(padding1_len)
 
@@ -165,7 +165,7 @@ class Cpio:
         return [chunk for chunk in self.chunks if chunk.filename == filename]
 
 
-    def rename_file(self, from_file, to_file):
+    def rename_file(self, from_file, to_file, fail_if_absent=True):
         if isinstance(from_file, str):
             from_file = from_file.encode() + b"\x00"
         if isinstance(to_file, str):
@@ -173,11 +173,13 @@ class Cpio:
 
         chunks_file = self.get_chunks_by_filename(from_file)
         if not chunks_file:
+            if not fail_if_absent:
+                return
             raise ValueError(f"file {from_file} is not exists while trying to rename it")
         elif len(chunks_file) > 1:
             raise ValueError(f"more than one {from_file} while trying to rename it")
-        chunk = chunks_file[0]
 
+        chunk = chunks_file[0]
         self.delete_chunk_by_filename(from_file)
 
         self.inject_file(to_file, chunk.mode, chunk.uid, chunk.gid, chunk.mtime, chunk.data)

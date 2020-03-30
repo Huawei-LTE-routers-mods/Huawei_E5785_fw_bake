@@ -1,9 +1,9 @@
 #!/bin/sh
 
 get_metrics() {
-    /app/oled_hijack/web_hook_client device signal 1 1
-    /app/oled_hijack/web_hook_client monitoring status 1 1
-    /app/oled_hijack/web_hook_client monitoring statusex 1 1
+    /app/hijacks/bin/web_hook_client device signal 1 1
+    /app/hijacks/bin/web_hook_client monitoring status 1 1
+    /app/hijacks/bin/web_hook_client monitoring statusex 1 1
 }
 
 handle_xml_line() {

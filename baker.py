@@ -4,6 +4,9 @@ import os
 ATTR_IS_FILE = 0o100000
 ATTR_IS_DIR = 0o40000
 
+SRC_SHOULD_EXIST = 1
+SRC_CAN_ABSENT = 0
+
 SYSTEM_FILES_RENAME = [
 
 ]
@@ -33,24 +36,30 @@ SYSTEM_FILES = [
 ]
 
 APP_FILES_RENAME = [
-    ("bin/device", "bin/device.orig"),
-    ("bin/oled", "bin/oled.orig"),
+    ("bin/device", "bin/device.orig", SRC_SHOULD_EXIST),
+    ("bin/oled", "bin/oled.orig", SRC_SHOULD_EXIST),
+    ("bin/cms.real", "bin/cms", SRC_CAN_ABSENT),
+    ("bin/cms", "bin/cms.orig", SRC_SHOULD_EXIST),
 ]
 
 APP_FILES = [
     ("config/wifi/countryChannel.xml", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/device", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/oled", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("oled_hijack", 1000, 1000, ATTR_IS_DIR | 0o755),
-    ("oled_hijack/oled_hijack.so", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("oled_hijack/web_hook.so", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("oled_hijack/web_hook_client", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("oled_hijack/ttl_and_imei.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("oled_hijack/no_battery_mode.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("oled_hijack/radio_mode.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("oled_hijack/user_scripts.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("oled_hijack/VPN.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("oled_hijack/example.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks", 1000, 1000, ATTR_IS_DIR | 0o755),
+    ("hijacks/bin", 1000, 1000, ATTR_IS_DIR | 0o755),
+    ("hijacks/bin/web_hook_client", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/lib", 1000, 1000, ATTR_IS_DIR | 0o755),
+    ("hijacks/lib/oled_hijack.so", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/lib/cms_hijack.so", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/lib/web_hook.so", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/scripts", 1000, 1000, ATTR_IS_DIR | 0o755),
+    ("hijacks/scripts/ttl_and_imei.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/scripts/no_battery_mode.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/scripts/radio_mode.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/scripts/user_scripts.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/scripts/vpn.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/scripts/example.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("prometheus", 1000, 1000, ATTR_IS_DIR | 0o755),
     ("prometheus/tinyproxy.conf", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("prometheus/start_exporter.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
@@ -65,8 +74,8 @@ APP_FILES = [
 system = cpio.Cpio("System.bin")
 os.chdir("system")
 
-for file_from, file_to in SYSTEM_FILES_RENAME:
-    system.rename_file(file_from, file_to)
+for file_from, file_to, src_should_exist in SYSTEM_FILES_RENAME:
+    system.rename_file(file_from, file_to, src_should_exist)
 for file, uid, gid, mode in SYSTEM_FILES:
     system.inject_fs_file(file, uid, gid, mode)
 
@@ -76,8 +85,8 @@ system.write_chunks("System.mod.bin")
 app = cpio.Cpio("APP.bin")
 os.chdir("app")
 
-for file_from, file_to in APP_FILES_RENAME:
-    app.rename_file(file_from, file_to)
+for file_from, file_to, src_should_exist in APP_FILES_RENAME:
+    app.rename_file(file_from, file_to, src_should_exist)
 for file, uid, gid, mode in APP_FILES:
     app.inject_fs_file(file, uid, gid, mode)
 

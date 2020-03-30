@@ -2,7 +2,7 @@
 
 ATC="/system/xbin/atc"
 IMEI_GENERATOR="/system/xbin/imei_generator"
-IMEI_SAVE_FILE="/root/saved_factory_imei.txt"
+IMEI_SAVE_FILE="/data/imei/saved_factory_imei.txt"
 IMEI_RE="^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"
 
 if [ "$#" -eq 0 ]; then
@@ -53,7 +53,7 @@ if [ "$#" -eq 1 ]; then
             echo 0 > /etc/disable_spe
             mount -o remount,ro /system
 
-            /etc/fix_ttl.sh
+            /etc/autorun.d/fix_ttl.sh
 
             if xtables-multi iptables -t mangle -C OUTPUT -o eth_x -j TTL --ttl-set 64; then
                 echo "text:Failed"
@@ -67,7 +67,7 @@ if [ "$#" -eq 1 ]; then
             echo 1 > /etc/disable_spe
             mount -o remount,ro /system
 
-            /etc/fix_ttl.sh
+            /etc/autorun.d/fix_ttl.sh
 
             if xtables-multi iptables -t mangle -C OUTPUT -o eth_x -j TTL --ttl-set 64; then
                 echo "text:Success"
@@ -104,6 +104,7 @@ if [ "$#" -eq 1 ]; then
                     exit 0
                 fi
 
+                mkdir -p /data/imei
                 echo "$IMEI" > $IMEI_SAVE_FILE
 
                 if [ "$?" -ne 0 ]; then

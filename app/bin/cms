@@ -1,0 +1,3 @@
+#!/system/bin/busybox sh
+
+LD_PRELOAD="/app/hijacks/lib/cms_hijack.so" exec /app/bin/cms.orig
