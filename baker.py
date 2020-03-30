@@ -46,6 +46,7 @@ APP_FILES = [
     ("config/wifi/countryChannel.xml", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/device", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/oled", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("bin/cms", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("hijacks", 1000, 1000, ATTR_IS_DIR | 0o755),
     ("hijacks/bin", 1000, 1000, ATTR_IS_DIR | 0o755),
     ("hijacks/bin/web_hook_client", 1000, 1000, ATTR_IS_FILE | 0o775),

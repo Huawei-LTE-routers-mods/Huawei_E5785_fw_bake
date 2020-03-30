@@ -21,9 +21,9 @@ int ATP_UTIL_ExecCmdNoHang(char *cmd) {
          }
     }
     // block switch commands
-    if (strcmp(cmd, "busybox echo type=switch switch=on action=set > /sys/devices/spe") == 0) {
+    if (strcmp(cmd, "busybox echo type=switch switch=on action=set > /sys/devices/spe_cmd/spe_cmd") == 0) {
         return 1;
-    } else if (strcmp(cmd, "busybox echo type=switch switch=off action=set > /sys/devices/spe") == 0) {
+    } else if (strcmp(cmd, "busybox echo type=switch switch=off action=set > /sys/devices/spe_cmd/spe_cmd") == 0) {
         return 1;
     }
 
