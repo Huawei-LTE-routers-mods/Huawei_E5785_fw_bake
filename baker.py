@@ -23,6 +23,7 @@ SYSTEM_FILES = [
     ("xbin/imei_generator", 0, 0, ATTR_IS_FILE | 0o755),
     ("xbin/tinyproxy", 0, 0, ATTR_IS_FILE | 0o755),
     ("xbin/openvpn", 0, 0, ATTR_IS_FILE | 0o755),
+    ("xbin/luarun", 0, 0, ATTR_IS_FILE | 0o755),
     ("xbin/wg", 0, 0, ATTR_IS_FILE | 0o755),
     ("modules", 0, 0, ATTR_IS_DIR | 0o755),
     ("modules/ip_tunnel.ko", 0, 0, ATTR_IS_FILE | 0o755),
