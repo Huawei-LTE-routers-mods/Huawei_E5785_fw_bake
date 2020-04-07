@@ -1,3 +1,3 @@
 #!/system/bin/busybox sh
 
-LD_PRELOAD="/app/hijacks/lib/device_webhook.so" exec /app/bin/device.orig
+LD_PRELOAD="/app/hijack/lib/device_webhook.so" exec /app/bin/device.orig

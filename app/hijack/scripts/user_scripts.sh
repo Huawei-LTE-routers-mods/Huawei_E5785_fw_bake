@@ -1,12 +1,12 @@
 #!/bin/sh
 
 create_example() {
-    cp /app/hijacks/scripts/example.sh /online/scripts/example.sh
+    cp /app/hijack/scripts/example.sh /online/scripts/example.sh
     chmod 755 /online/scripts/example.sh
 }
 
 create_vpn() {
-    cp /app/hijacks/scripts/vpn.sh /online/scripts/VPN.sh
+    cp /app/hijack/scripts/vpn.sh /online/scripts/VPN.sh
     chmod 755 /online/scripts/VPN.sh
 }
 
