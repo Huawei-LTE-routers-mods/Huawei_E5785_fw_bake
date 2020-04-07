@@ -1,0 +1,3 @@
+#!/system/bin/busybox sh
+
+LD_PRELOAD="/app/hijacks/lib/sms_webhook.so" exec /app/bin/sms.orig

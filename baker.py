@@ -41,6 +41,7 @@ APP_FILES_RENAME = [
     ("bin/oled", "bin/oled.orig", SRC_SHOULD_EXIST),
     ("bin/cms.real", "bin/cms", SRC_CAN_ABSENT),
     ("bin/cms", "bin/cms.orig", SRC_SHOULD_EXIST),
+    ("bin/sms", "bin/sms.orig", SRC_SHOULD_EXIST),
 ]
 
 APP_FILES = [
@@ -48,13 +49,16 @@ APP_FILES = [
     ("bin/device", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/oled", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/cms", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("bin/sms", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("hijacks", 1000, 1000, ATTR_IS_DIR | 0o755),
     ("hijacks/bin", 1000, 1000, ATTR_IS_DIR | 0o755),
-    ("hijacks/bin/web_hook_client", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/bin/device_webhook_client", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/bin/sms_webhook_client", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("hijacks/lib", 1000, 1000, ATTR_IS_DIR | 0o755),
     ("hijacks/lib/oled_hijack.so", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("hijacks/lib/cms_hijack.so", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("hijacks/lib/web_hook.so", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/lib/device_webhook.so", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("hijacks/lib/sms_webhook.so", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("hijacks/scripts", 1000, 1000, ATTR_IS_DIR | 0o755),
     ("hijacks/scripts/ttl_and_imei.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("hijacks/scripts/no_battery_mode.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
