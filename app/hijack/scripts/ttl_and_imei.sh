@@ -2,7 +2,7 @@
 
 ATC="/system/xbin/atc"
 IMEI_GENERATOR="/system/xbin/imei_generator"
-IMEI_SAVE_FILE="/data/imei/saved_factory_imei.txt"
+IMEI_SAVE_FILE="/root/imei/saved_factory_imei.txt"
 IMEI_RE="^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"
 
 if [ "$#" -eq 0 ]; then
@@ -104,7 +104,7 @@ if [ "$#" -eq 1 ]; then
                     exit 0
                 fi
 
-                mkdir -p /data/imei
+                mkdir -p /root/imei
                 echo "$IMEI" > $IMEI_SAVE_FILE
 
                 if [ "$?" -ne 0 ]; then
