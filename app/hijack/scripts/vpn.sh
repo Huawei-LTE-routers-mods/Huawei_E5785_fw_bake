@@ -37,20 +37,20 @@ case "$ACTION" in
     "")
         echo "text:WireGuard VPN:"
         if is_vpn_up; then
-            echo "item: <Enable>:VPN_ENABLE"
-            echo "item: Disable:VPN_DISABLE"
+            echo "item:<Enable>:VPN_ENABLE"
+            echo "item:Disable:VPN_DISABLE"
         else
-            echo "item: Enable:VPN_ENABLE"
-            echo "item: <Disable>:VPN_DISABLE"
+            echo "item:Enable:VPN_ENABLE"
+            echo "item:<Disable>:VPN_DISABLE"
         fi
 
         echo "text:Start on boot"
         if is_vpn_on_boot; then
-            echo "item: <Yes>:VPN_ON_BOOT_ENABLE"
-            echo "item:  No:VPN_ON_BOOT_DISABLE"
+            echo "item:<Yes>:VPN_ON_BOOT_ENABLE"
+            echo "item: No:VPN_ON_BOOT_DISABLE"
         else
-            echo "item:  Yes:VPN_ON_BOOT_ENABLE"
-            echo "item: <No>:VPN_ON_BOOT_DISABLE"
+            echo "item: Yes:VPN_ON_BOOT_ENABLE"
+            echo "item:<No>:VPN_ON_BOOT_DISABLE"
         fi
     ;;
     VPN_ENABLE)

@@ -11,11 +11,11 @@ if [ "$#" -eq 0 ]; then
     TTL="$(cat /etc/fix_ttl)"
 
     if [ "$TTL" -eq 0 ]; then
-        echo "item:  Yes:TTL_FIX64"
-        echo "item: <No>:TTL_NO_FIX"
+        echo "item: Yes:TTL_FIX64"
+        echo "item:<No>:TTL_NO_FIX"
     else
-        echo "item: <Yes>:TTL_FIX64"
-        echo "item:  No:TTL_NO_FIX"
+        echo "item:<Yes>:TTL_FIX64"
+        echo "item: No:TTL_NO_FIX"
     fi
 
     echo "pagebreak:"
@@ -33,11 +33,11 @@ if [ "$#" -eq 0 ]; then
     FACTORY_IMEI="$(cat $IMEI_SAVE_FILE 2>/dev/null | grep -o "$IMEI_RE")"
 
     if [ -z "$FACTORY_IMEI" -o "$IMEI" = "$FACTORY_IMEI" ]; then
-        echo "item:  Yes:IMEI_SET_RANDOM"
-        echo "item: <No>:IMEI_SET_FACTORY"
+        echo "item: Yes:IMEI_SET_RANDOM"
+        echo "item:<No>:IMEI_SET_FACTORY"
     else
-        echo "item: <Yes>:IMEI_SET_RANDOM"
-        echo "item: No:IMEI_SET_FACTORY"
+        echo "item:<Yes>:IMEI_SET_RANDOM"
+        echo "item:No:IMEI_SET_FACTORY"
     fi
 
     echo "text:"

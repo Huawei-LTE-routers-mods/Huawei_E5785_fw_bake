@@ -6,11 +6,11 @@ if [ "$#" -eq 0 ]; then
     echo "text:Battery:"
 
     if $NVTOOL -d 50364 | grep -q '00 00 00 00'; then
-        echo "item: <Enable>:enable"
-        echo "item:  Disable:disable"
+        echo "item:<Enable>:enable"
+        echo "item: Disable:disable"
     else
-        echo "item:  Enable:enable"
-        echo "item: <Disable>:disable"
+        echo "item: Enable:enable"
+        echo "item:<Disable>:disable"
     fi
 fi
 

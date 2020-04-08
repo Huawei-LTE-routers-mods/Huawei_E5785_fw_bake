@@ -17,10 +17,10 @@ print_item () {
     SHOW_IF_NOT_SELECTED="$4"
 
     if [[ "$CURRENT_MODE" == "$MODE" ]]; then
-        echo "item: <$DESC>:$MODE"
+        echo "item:<$DESC>:$MODE"
     else
         if [ "$SHOW_IF_NOT_SELECTED" -eq 1 ]; then
-            echo "item:  $DESC :$MODE"
+            echo "item: $DESC :$MODE"
         fi
     fi
 }
