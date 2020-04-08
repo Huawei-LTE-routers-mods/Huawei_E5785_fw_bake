@@ -11,8 +11,8 @@ if [ $temp -eq -30 ]; then
 fi
 
 mkdir /dev/net && busyboxx mknod /dev/net/tun c 10 200
-
-/app/webroot/webui_init1.sh
+mkdir -p /data/userdata/ussd
+chown 1000:1000 /data/userdata/ussd
 
 g_bAtDataLocked=`grep -w -m1 "g_bAtDataLocked" /proc/kallsyms`
 addr=0x${g_bAtDataLocked:0:8}
@@ -32,5 +32,4 @@ mv /sbin/adbd /sbin/adbd~
 mkdir -p /data/dropbear
 dropbear -R
 
-/app/webroot/webui_init2.sh
 /app/prometheus/start_exporter.sh

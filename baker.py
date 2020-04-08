@@ -66,6 +66,8 @@ APP_FILES = [
     ("hijack/scripts/user_scripts.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("hijack/scripts/vpn.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("hijack/scripts/example.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("html/api/voice/speeddial.lua", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("html/api/voice/speeddial.json.lua", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("prometheus", 1000, 1000, ATTR_IS_DIR | 0o755),
     ("prometheus/tinyproxy.conf", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("prometheus/start_exporter.sh", 1000, 1000, ATTR_IS_FILE | 0o775),
