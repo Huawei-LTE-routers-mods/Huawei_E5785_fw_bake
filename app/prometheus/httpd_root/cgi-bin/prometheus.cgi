@@ -7,13 +7,13 @@ get_metrics() {
 }
 
 handle_xml_line() {
-    LINE="$1"
+    local LINE="$1"
     LINE="${LINE#<}"
     LINE="${LINE/<\/*/}"
 
-    PARAM="${LINE/>*/}"
-    VALUE="${LINE/*>/}"
-    VALUE="${VALUE//[!0-9-]/}"
+    local PARAM="${LINE/>*/}"
+    local VALUE="${LINE/*>/}"
+    local VALUE="${VALUE//[!0-9-]/}"
 
     if [ -z "$PARAM" -o -z "$VALUE" ]; then
         return
@@ -46,13 +46,13 @@ handle_xml_line() {
 }
 
 handle_net_stat_line() {
-    LINE="$1"
+    local LINE="$1"
 
-    INTERFACE=""
-    STAT_IDX=-1
+    local INTERFACE=""
+    local STAT_IDX=-1
     for VALUE in $LINE; do
         STAT_IDX="$((STAT_IDX+1))"
-        STAT_STR=""
+        local STAT_STR=""
         case "$STAT_IDX" in
             0) INTERFACE="${VALUE//[!a-zA-Z0-9_]/}"; continue ;;
             1) STAT_STR="receive_bytes";;
@@ -73,6 +73,18 @@ handle_net_stat_line() {
     done
 }
 
+handle_conntrack_stat() {
+    local LINE="$1"
+    local FIELDS
+    FIELDS=( $LINE )
+    local STAT="${FIELDS[0]}"
+    local VALUE="${FIELDS[1]}"
+
+    echo "# HELP huawei_conntrack_${STAT} The conntrack ${STAT} counter"
+    echo "# TYPE huawei_conntrack_${STAT} counter"
+    echo "huawei_conntrack_${STAT} $VALUE"
+}
+
 echo "Content-Type: text/plain"
 echo ""
 
@@ -82,4 +94,8 @@ done
 
 cat /proc/net/dev | while IFS= read -r LINE; do
     handle_net_stat_line "$LINE"
+done
+
+/system/bin/conntrack -S | while IFS= read -r LINE; do
+    handle_conntrack_stat "$LINE"
 done
