@@ -18,6 +18,18 @@ function at_least_one_wifi_enabled()
     return is_wifi_enabled(1) == 1 or is_wifi_enabled(2) == 1
 end
 
+function set_param_with_retry(param, value, retries, command)
+    local ret = 1
+    for i=0,retries,1 do
+        ret = dm.SetParameterValues(param, value)
+        if ret ~= 100004 then
+            break
+        end
+        os.execute(command)
+    end
+    return ret
+end
+
 function print_r ( t )
     local print_r_cache={}
     local function sub_print_r(t,indent)
@@ -408,18 +420,19 @@ print("item:Banned (".. get_banned_mac_count() .. "):WIFI_BANNED_CLIENTS")
 '
 
 WIFI_ON='
-dm.SetParameterValues("InternetGatewayDevice.X_Config.Wifi.Radio.1.Enable", "1")
-dm.SetParameterValues("InternetGatewayDevice.X_Config.Wifi.Radio.2.Enable", "1")
+set_param_with_retry("InternetGatewayDevice.X_Config.Wifi.Radio.1.Enable", "1", 10, "sleep 1")
+set_param_with_retry("InternetGatewayDevice.X_Config.Wifi.Radio.2.Enable", "1", 10, "sleep 1")
+
 if at_least_one_wifi_enabled() then
     print("text: Success")
 else
-    print("text: Too often")
+    print("text: Failed")
 end
 '
 
 WIFI_OFF='
-dm.SetParameterValues("InternetGatewayDevice.X_Config.Wifi.Radio.1.Enable", "0")
-dm.SetParameterValues("InternetGatewayDevice.X_Config.Wifi.Radio.2.Enable", "0")
+set_param_with_retry("InternetGatewayDevice.X_Config.Wifi.Radio.1.Enable", "0", 10, "sleep 1")
+set_param_with_retry("InternetGatewayDevice.X_Config.Wifi.Radio.2.Enable", "0", 10, "sleep 1")
 if at_least_one_wifi_enabled() then
     print("text: Failed")
 else
