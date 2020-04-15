@@ -38,6 +38,7 @@ SYSTEM_FILES = [
 ]
 
 APP_FILES_RENAME = [
+    ("bin/cli", "bin/debug", SRC_SHOULD_EXIST),
     ("bin/device", "bin/device.orig", SRC_SHOULD_EXIST),
     ("bin/oled", "bin/oled.orig", SRC_SHOULD_EXIST),
     ("bin/cms.real", "bin/cms", SRC_CAN_ABSENT),

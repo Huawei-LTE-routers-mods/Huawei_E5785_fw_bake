@@ -5,6 +5,20 @@ IMEI_GENERATOR="/system/xbin/imei_generator"
 IMEI_SAVE_FILE="/root/imei/saved_factory_imei.txt"
 IMEI_RE="^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"
 
+change_imei () {
+    local IMEI="$1"
+
+    PRODUCT="$(cat /proc/productname)"
+    case "$PRODUCT" in
+        E5885*)
+            $ATC "AT^CIMEI=\"$IMEI\"" | grep OK
+        ;;
+        *)
+            $ATC "AT^PHYNUM=IMEI,$IMEI" | grep OK
+        ;;
+    esac
+}
+
 if [ "$#" -eq 0 ]; then
     echo "text:Fix TTL:"
 
@@ -83,7 +97,7 @@ if [ "$#" -eq 1 ]; then
                 exit 0
             fi
 
-            $ATC "AT^PHYNUM=IMEI,$FACTORY_IMEI" | grep OK
+            change_imei "$NEW_IMEI"
 
             if [ $? -eq 0 ]; then
                 echo "text: Success, new IMEI:"
@@ -132,7 +146,7 @@ if [ "$#" -eq 1 ]; then
                 exit 0
             fi
 
-            $ATC "AT^PHYNUM=IMEI,$NEW_IMEI" | grep OK
+            change_imei "$NEW_IMEI"
 
             if [ $? -eq 0 ]; then
                 echo "text: Success, new IMEI:"

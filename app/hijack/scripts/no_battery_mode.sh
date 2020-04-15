@@ -5,6 +5,14 @@ NVTOOL="/system/xbin/balong-nvtool"
 if [ "$#" -eq 0 ]; then
     echo "text:Battery:"
 
+    PRODUCT="$(cat /proc/productname)"
+    case "$PRODUCT" in
+        E5885*)
+            echo "text: Not detachable"
+            exit 0
+            ;;
+    esac
+
     if $NVTOOL -d 50364 | grep -q '00 00 00 00'; then
         echo "item:<Enable>:enable"
         echo "item: Disable:disable"
@@ -32,8 +40,8 @@ if [ "$#" -eq 1 ]; then
                 echo "text:Error"
             fi
             ;;
-        * ) 
+        * )
             echo "text: wrong command mode"
-            exit 1;; 
+            exit 1;;
     esac
 fi

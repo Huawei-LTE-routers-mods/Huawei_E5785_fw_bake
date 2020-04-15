@@ -18,6 +18,16 @@ function at_least_one_wifi_enabled()
     return is_wifi_enabled(1) == 1 or is_wifi_enabled(2) == 1
 end
 
+function is_dbdc_enabled()
+    local key = "InternetGatewayDevice.X_Config.Wifi."
+    local errcode,domain = dm.GetParameterValues(key, {"WifiDbdcEnable"})
+    if errcode ~= 0 then
+        return -1
+    end
+
+    return tonumber(domain[key]["WifiDbdcEnable"])
+end
+
 function set_param_with_retry(param, value, retries, command)
     local ret = 1
     for i=0,retries,1 do
@@ -25,6 +35,47 @@ function set_param_with_retry(param, value, retries, command)
         if ret ~= 100004 then
             break
         end
+        os.execute(command)
+    end
+    return ret
+end
+
+function set_params_with_retry(params, retries, command)
+    local ret = 1
+    for i=0,retries,1 do
+        ret = dm.SetParameterValues(params)
+        if ret == 0 then
+            break
+        end
+        print("bad set params return: " .. ret)
+        os.execute(command)
+    end
+    return ret
+end
+
+
+function add_object_with_retry(key, params, retries, command)
+    local ret = 1
+    for i=0,retries,1 do
+        ret, num = dm.AddObjectToDB(key, params)
+        if ret == 0 then
+            break
+        end
+        print("bad add object return: " .. ret)
+        os.execute(command)
+    end
+    return ret
+end
+
+
+function del_object_with_retry(key, retries, command)
+    local ret = 1
+    for i=0,retries,1 do
+        ret, num = dm.DBDeleteObject(key)
+        if ret == 0 or ret == 196619 then
+            break
+        end
+        print("bad del object return: " .. ret)
         os.execute(command)
     end
     return ret
@@ -211,6 +262,15 @@ function get_not_active_hosts(hosts)
 end
 
 
+function add_default_mac_filter_list(ssidKey)
+    ret, count = dm.GetObjNum("InternetGatewayDevice.X_Config.Wifi.Radio.{i}")
+    if ret == 0 and count < 10 then
+        for i=count+1,10,1 do
+            dm.AddObject("InternetGatewayDevice.X_Config.Wifi.Radio.1.Ssid.1.MacFilter.List.")
+        end
+    end
+end
+
 function get_ssid_blocked_mac_info(ssidkey)
     local ban_info = {}
 
@@ -240,12 +300,13 @@ function get_ssid_blocked_mac_info(ssidkey)
     return ban_info
 end
 
-function get_mac_blocked_info_by_radio(radioindex)
+function init_and_get_mac_blocked_info_by_radio(radioindex)
     local ssidkey = "InternetGatewayDevice.X_Config.Wifi.Radio."..radioindex..".Ssid.{i}"
     local errorcode, ssidnum, array = dm.GetObjNum(ssidkey)
     local blocked_info_by_ssid_idx = {}
     for i=1,ssidnum,1 do
         local key = "InternetGatewayDevice.X_Config.Wifi.Radio."..radioindex..".Ssid."..i.."."
+        add_default_mac_filter_list(key)
         blocked_info_by_ssid_idx[i] = get_ssid_blocked_mac_info(key)
     end
     return blocked_info_by_ssid_idx
@@ -257,7 +318,7 @@ function get_ban_lists()
 
     local errorcode, radionum, array = dm.GetObjNum("InternetGatewayDevice.X_Config.Wifi.Radio.{i}")
     for i=1,radionum,1 do
-        blocked_info_by_radio_idx[i] = get_mac_blocked_info_by_radio(i)
+        blocked_info_by_radio_idx[i] = init_and_get_mac_blocked_info_by_radio(i)
     end
     return blocked_info_by_radio_idx
 end
@@ -396,6 +457,128 @@ function unban(mac)
     end
 end
 
+function dual_wifi_on()
+    print("Wi-Fi check")
+    if not at_least_one_wifi_enabled() then
+        print("text: Error: the Wi-Fi is disabled")
+        return
+    end
+    print("Wi-Fi check passed")
+
+    local radio1_params = {
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.1.Basic.OperatingFrequencyBand", "2.4GHz"},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.1.Basic.Ieee80211NBWControl", 40},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.1.Basic.Standard", "b/g/n"},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.1.Basic.Channel", 1},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.1.Basic.AutoChannelEnable", 1}
+    }
+
+    print("Setting radio 1 params")
+    if set_params_with_retry(radio1_params, 10, "sleep 0.5") ~= 0 then
+        print("text: Error: failed to set curr radio params")
+        return
+    end
+
+    print("Radio 1 params set")
+
+    ret, count = dm.GetObjNum("InternetGatewayDevice.X_Config.Wifi.Radio.{i}")
+    print("Radio count: ", count)
+
+    if ret == 0 and count == 1 then
+        params ={
+            {"Enable", 1},
+            {"Status", 0},
+            {"Name", "wl0.1"},
+            {"Version", 0},
+            {"Mode", 2}
+        }
+        ret, num = add_object_with_retry("InternetGatewayDevice.X_Config.Wifi.Radio.", params, 20, "sleep 0.5")
+        print(ret, num)
+    end
+
+    os.execute("sleep 1")
+    print("Setting WifiDbdcEnable")
+    if set_params_with_retry({{"InternetGatewayDevice.X_Config.Wifi.WifiDbdcEnable", "1"}}, 20, "sleep 0.5") ~= 0 then
+        print("text: Error: failed to set WifiDbdcEnable param")
+        return
+    end
+
+    print("Setting WifiDbdcEnable done")
+
+    local radio2_params = {
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.OperatingFrequencyBand", "5GHz"},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.Standard", "a/n/ac"},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.Channel", 1},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.AutoChannelEnable", 1},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.CountryCode", "US"},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.WMMEnable", 1},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.Ieee80211NBWControl", 40},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.Ieee80211NTxRxStream", 0},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.OffTime", 60},
+        {"InternetGatewayDevice.X_Config.Wifi.Radio.2.Basic.TotalWifiMaxAssoc", 16},
+    }
+
+    print("Setting radio2 params")
+    if set_params_with_retry(radio2_params, 20, "sleep 0.5") ~= 0 then
+        print("text: Error: failed to set radio2 params")
+        return
+    end
+
+    os.execute("sleep 1")
+
+    ret, count = dm.GetObjNum("InternetGatewayDevice.X_Config.Wifi.Radio.2.Ssid.{i}")
+    print("Radio 2 ssid count: ", count)
+
+    if ret == 0 and count == 0 then
+        print("Adding ssid to radio 2")
+        local ssid_params = {
+            {"Index", 0},
+            {"Enable", 1},
+            {"Status", 0},
+            {"Name", "wl0.1"},
+            {"BSSID", "A0:57:E3:AE:A0:B5"},
+            {"SSID", "huawei_5ghz"},
+            {"AdvertisementEnabled", 1},
+            {"RadioEnabled", 1},
+            {"TotalAssociations", 10},
+            {"AssociateDeviceNum", 9},
+            {"IsolateControl", 1},
+            {"DisassocTime", 300},
+            {"Wifioffenable", 0},
+            {"GuestOffTime", 0},
+            {"IsGuestNetwork", 0},
+            {"RTSThreshold", 2347},
+            {"FragThreshold", 2346},
+            {"DtimPeriod", 1},
+            {"BeaconPeriod", 100},
+            {"BridgeInfo", "br0"}
+        }
+        ret, num = add_object_with_retry("InternetGatewayDevice.X_Config.Wifi.Radio.2.Ssid.", ssid_params, 10, "sleep 0.5")
+        print("Ssid ret ", ret, num)
+    end
+
+    print("text: Done, reboot pending")
+end
+
+function dual_wifi_off()
+    print("Deleting Ssid on Radio 2")
+    ret = del_object_with_retry("InternetGatewayDevice.X_Config.Wifi.Radio.2.Ssid.1", 20, "sleep 0.5")
+    print("Del object returned ", ret)
+    print("Deleting Radio 2")
+    ret = del_object_with_retry("InternetGatewayDevice.X_Config.Wifi.Radio.2", 20, "sleep 0.5")
+    print("Del object returned ", ret)
+
+    os.execute("sleep 1")
+    print("Setting WifiDbdcEnable")
+    if set_params_with_retry({{"InternetGatewayDevice.X_Config.Wifi.WifiDbdcEnable", "0"}}, 20, "sleep 0.5") ~= 0 then
+        print("text: Error: failed to set WifiDbdcEnable param")
+        return
+    end
+
+    print("Setting WifiDbdcEnable done")
+    print("text: Done, reboot pending")
+end
+
 '
 
 WIFI_STATUS='
@@ -417,6 +600,21 @@ print("text:Clients:")
 print("item:Active ("..table.getn(active_hosts).."):WIFI_ACTIVE_CLIENTS")
 print("item:Old ("..table.getn(not_active_hosts).."):WIFI_NOT_ACTIVE_CLIENTS")
 print("item:Banned (".. get_banned_mac_count() .. "):WIFI_BANNED_CLIENTS")
+print("pagebreak:")
+'
+
+WIFI_STATUS_DUAL_WIFI='
+print("text:5GHz+2Ghz:")
+if is_dbdc_enabled() == 1 then
+    print("item:<On>:DUAL_WIFI_ON")
+    print("item: Off:DUAL_WIFI_OFF")
+else
+    print("item: On:DUAL_WIFI_ON")
+    print("item:<Off>:DUAL_WIFI_OFF")
+end
+print("text: ")
+print("text: Takes about 1 minute")
+print("text: Reboot will be needed")
 '
 
 WIFI_ON='
@@ -427,6 +625,7 @@ if at_least_one_wifi_enabled() then
     print("text: Success")
 else
     print("text: Failed")
+    print("text: Try to reboot")
 end
 '
 
@@ -482,7 +681,15 @@ end
 
 
 if [ "$#" -eq 0 ]; then
-    echo "$WIFI_COMMON $WIFI_STATUS" | "${LUARUN}"
+    PRODUCT="$(cat /proc/productname)"
+    case "$PRODUCT" in
+        E5885*)
+            echo "$WIFI_COMMON $WIFI_STATUS" | "${LUARUN}"
+        ;;
+        *)
+            echo "$WIFI_COMMON $WIFI_STATUS $WIFI_STATUS_DUAL_WIFI" | "${LUARUN}"
+        ;;
+    esac
 fi
 
 if [ "$#" -eq 1 ]; then
@@ -509,6 +716,12 @@ if [ "$#" -eq 1 ]; then
         UNBAN_[a-fA-F0-9][a-fA-F0-9]:[a-fA-F0-9][a-fA-F0-9]:[a-fA-F0-9][a-fA-F0-9]:[a-fA-F0-9][a-fA-F0-9]:[a-fA-F0-9][a-fA-F0-9]:[a-fA-F0-9][a-fA-F0-9] )
             MAC="${1#UNBAN_}"
             echo "$WIFI_COMMON unban('$MAC')" | "${LUARUN}"
+            ;;
+        DUAL_WIFI_ON )
+            echo "$WIFI_COMMON dual_wifi_on()" | "${LUARUN}"
+            ;;
+        DUAL_WIFI_OFF )
+            echo "$WIFI_COMMON dual_wifi_off()" | "${LUARUN}"
             ;;
         * )
             echo "text: wrong command mode"
