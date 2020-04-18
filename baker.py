@@ -48,6 +48,7 @@ APP_FILES_RENAME = [
 
 APP_FILES = [
     ("config/wifi/countryChannel.xml", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("config/wifi/config.xml", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/device", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/oled", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/cms", 1000, 1000, ATTR_IS_FILE | 0o775),
