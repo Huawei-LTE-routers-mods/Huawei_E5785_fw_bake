@@ -10,6 +10,11 @@ create_vpn() {
     chmod 755 /online/scripts/VPN.sh
 }
 
+create_pinger() {
+    cp /app/hijack/scripts/pinger.sh /online/scripts/pinger.sh
+    chmod 755 /online/scripts/pinger.sh
+}
+
 print_scripts() {
     for script in *.sh; do
         FIRST="$(echo -n "${script:0:1}" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')"
@@ -28,7 +33,9 @@ if [ $? -ne 0 ]; then
     if [ ! -f /online/scripts/VPN.sh ]; then
         create_vpn
     fi
-
+    if [ ! -f /online/scripts/pinger.sh ]; then
+        create_pinger
+    fi
 fi
 
 echo "text:In /online/scripts:"
