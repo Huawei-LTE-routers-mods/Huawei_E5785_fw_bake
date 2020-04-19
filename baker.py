@@ -25,6 +25,8 @@ SYSTEM_FILES = [
     ("xbin/openvpn", 0, 0, ATTR_IS_FILE | 0o755),
     ("xbin/luarun", 0, 0, ATTR_IS_FILE | 0o755),
     ("xbin/wg", 0, 0, ATTR_IS_FILE | 0o755),
+    ("xbin/oping", 0, 0, ATTR_IS_FILE | 0o755),
+    ("lib/liboping.so", 0, 0, ATTR_IS_FILE | 0o755),
     ("modules", 0, 0, ATTR_IS_DIR | 0o755),
     ("modules/ip_tunnel.ko", 0, 0, ATTR_IS_FILE | 0o755),
     ("modules/wireguard.ko", 0, 0, ATTR_IS_FILE | 0o755),
