@@ -1,5 +1,8 @@
 import cpio
 import os
+import sys
+
+MODELS = ("E5785", "E5885")
 
 ATTR_IS_FILE = 0o100000
 ATTR_IS_DIR = 0o40000
@@ -7,9 +10,7 @@ ATTR_IS_DIR = 0o40000
 SRC_SHOULD_EXIST = 1
 SRC_CAN_ABSENT = 0
 
-SYSTEM_FILES_RENAME = [
-
-]
+SYSTEM_FILES_RENAME = []
 
 SYSTEM_FILES = [
     ("bin/busyboxx", 0, 0, ATTR_IS_FILE | 0o4775),
@@ -50,7 +51,14 @@ APP_FILES_RENAME = [
 
 APP_FILES = [
     ("config/wifi/countryChannel.xml", 1000, 1000, ATTR_IS_FILE | 0o775),
-    ("config/wifi/config.xml", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("config/wifi/config.xml.e5785", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("config/wifi/config.xml.e5885", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("config/oled", 1000, 1000, ATTR_IS_DIR | 0o755),
+    ("config/oled/animation", 1000, 1000, ATTR_IS_DIR | 0o755),
+    ("config/oled/animation/ani_power_off.xml.e5785", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("config/oled/animation/welcome.xml.e5785", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("config/oled/animation/ani_power_off.xml.e5885", 1000, 1000, ATTR_IS_FILE | 0o775),
+    ("config/oled/animation/welcome.xml.e5885", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/device", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/oled", 1000, 1000, ATTR_IS_FILE | 0o775),
     ("bin/cms", 1000, 1000, ATTR_IS_FILE | 0o775),
@@ -84,28 +92,44 @@ APP_FILES = [
     ("prometheus/httpd_root/index.html", 1000, 1000, ATTR_IS_FILE | 0o664),
     ("prometheus/httpd_root/cgi-bin", 1000, 1000, ATTR_IS_DIR | 0o755),
     ("prometheus/httpd_root/cgi-bin/prometheus.cgi", 1000, 1000, ATTR_IS_FILE | 0o775),
-
 ]
 
 
-system = cpio.Cpio("System.bin")
-os.chdir("system")
+def get_remote_filename(model, file):
+    origname, ext = os.path.splitext(file)
+    ext = ext[1:].upper()
 
-for file_from, file_to, src_should_exist in SYSTEM_FILES_RENAME:
-    system.rename_file(file_from, file_to, src_should_exist)
-for file, uid, gid, mode in SYSTEM_FILES:
-    system.inject_fs_file(file, uid, gid, mode)
+    if ext not in MODELS:
+        return file
 
-os.chdir("..")
-system.write_chunks("System.mod.bin")
+    if ext == model:
+        return origname
+    return ""
 
-app = cpio.Cpio("APP.bin")
-os.chdir("app")
+def apply_rules(model, in_cpio_path, out_cpio_path, basedir, rename_files, files):
+    cpio_obj = cpio.Cpio(in_cpio_path)
 
-for file_from, file_to, src_should_exist in APP_FILES_RENAME:
-    app.rename_file(file_from, file_to, src_should_exist)
-for file, uid, gid, mode in APP_FILES:
-    app.inject_fs_file(file, uid, gid, mode)
+    cur_dir = os.getcwd()
+    os.chdir(basedir)
 
-os.chdir("..")
-app.write_chunks("APP.mod.bin")
+    for file_from, file_to, src_should_exist in rename_files:
+        cpio_obj.rename_file(file_from, file_to, src_should_exist)
+
+    for file, uid, gid, mode in files:
+        remote_filename = get_remote_filename(model, file)
+        if not remote_filename:
+            continue
+
+        cpio_obj.inject_fs_file(file, uid, gid, mode, newname=remote_filename)
+
+    os.chdir(cur_dir)
+    cpio_obj.write_chunks(out_cpio_path)
+
+
+for model in ("E5785", "E5885"):
+    try:
+        apply_rules(model, f"System.{model}.orig.bin", f"System.{model}.bin","system", SYSTEM_FILES_RENAME, SYSTEM_FILES)
+        apply_rules(model, f"APP.{model}.orig.bin", f"APP.{model}.bin", "app", APP_FILES_RENAME, APP_FILES)
+        print(f"Ready, System.{model}.bin and APP.{model}.bin created")
+    except FileNotFoundError as E:
+        print(f"Skipping baking fw for model {model}: {E}")

@@ -1,7 +1,7 @@
 import os
 
 CHUNK_HDR_LEN = 110
-
+ATTR_IS_DIR = 0o40000
 
 class Chunk:
     def __str__(self):
@@ -125,6 +125,12 @@ class Cpio:
         if isinstance(filename, str):
             filename = filename.encode() + b"\x00"
 
+        if mode | ATTR_IS_DIR:
+            for chunk in self.chunks:
+                if chunk.filename == filename:
+                    # do not create dir if exists
+                    return
+
         self.delete_chunk_by_filename(filename)
 
         chunk = Chunk()
@@ -149,7 +155,8 @@ class Cpio:
 
         self.chunks.insert(-1, chunk)
 
-    def inject_fs_file(self, filename, uid=0, gid=0, mode=0o0777):
+
+    def inject_fs_file(self, filename, uid=0, gid=0, mode=0o0777, newname=""):
         fileinfo = os.stat(filename)
 
         try:
@@ -157,7 +164,12 @@ class Cpio:
         except IsADirectoryError:
             data = b""
 
-        self.inject_file(filename, mode, uid, gid, fileinfo.st_mtime, data)
+
+        if not newname:
+            newname = filename
+
+        self.inject_file(newname, mode, uid, gid, fileinfo.st_mtime, data)
+
 
     def get_chunks_by_filename(self, filename):
         if isinstance(filename, str):
