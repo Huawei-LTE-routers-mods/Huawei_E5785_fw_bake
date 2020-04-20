@@ -125,7 +125,7 @@ class Cpio:
         if isinstance(filename, str):
             filename = filename.encode() + b"\x00"
 
-        if mode | ATTR_IS_DIR:
+        if mode & ATTR_IS_DIR:
             for chunk in self.chunks:
                 if chunk.filename == filename:
                     # do not create dir if exists
