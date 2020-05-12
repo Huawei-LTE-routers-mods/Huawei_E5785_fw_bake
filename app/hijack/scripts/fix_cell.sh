@@ -26,7 +26,11 @@ case "$ACTION" in
             echo "item: <Unfix>:UNFIX_CELL"
         fi
         echo "text: "
-        busyboxx printf "text:Current cell: %d, B%d, %d.%dMhz" $PCI $BAND "$(($DLFREQ / 10))" "$(( $DLFREQ %10))"
+        if [[ "$DLFREQ" -gt 0 ]] then
+            busyboxx printf "text:Current cell: %d, B%d, %d.%dMhz" $PCI $BAND "$(("$DLFREQ" / 10))" "$(( "$DLFREQ" %10))"
+        else
+            echo "text:Current cell is unknown"
+        fi
     ;;
     FIX_CELL)
         PCI="$2"
@@ -34,7 +38,9 @@ case "$ACTION" in
         DLFREQ="$4"
         
         if [ -z "$PCI" -o -z "$BAND" -o -z "$DLFREQ" ]; then
-            echo "text: Params error"
+            echo "text: Status: failed"
+            echo "text: "
+            echo "text:Not enough current cell info"
             exit 0
         fi
         
