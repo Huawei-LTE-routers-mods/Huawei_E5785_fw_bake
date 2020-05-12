@@ -27,7 +27,7 @@ case "$ACTION" in
         fi
         echo "text: "
         if [[ "$DLFREQ" -gt 0 ]] then
-            busyboxx printf "text:Current cell: %d, B%d, %d.%dMhz" $PCI $BAND "$(("$DLFREQ" / 10))" "$(( "$DLFREQ" %10))"
+            busyboxx printf "text:Current cell: %d, B%d, %d.%dMhz" $PCI $BAND "$(($DLFREQ / 10))" "$(( $DLFREQ % 10))"
         else
             echo "text:Current cell is unknown"
         fi
