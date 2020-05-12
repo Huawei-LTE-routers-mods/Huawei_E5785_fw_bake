@@ -15,6 +15,11 @@ create_pinger() {
     chmod 755 /online/scripts/pinger.sh
 }
 
+create_fix_cell() {
+    cp /app/hijack/scripts/fix_cell.sh /online/scripts/fix_cell.sh
+    chmod 755 /online/scripts/fix_cell.sh
+}
+
 print_scripts() {
     for script in *.sh; do
         FIRST="$(echo -n "${script:0:1}" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')"
@@ -36,6 +41,10 @@ if [ $? -ne 0 ]; then
     if [ ! -f /online/scripts/pinger.sh ]; then
         create_pinger
     fi
+    if [ ! -f /online/scripts/fix_cell.sh ]; then
+        create_fix_cell
+    fi
+
 fi
 
 echo "text:In /online/scripts:"
