@@ -183,7 +183,7 @@ function get_hosts_table()
             Host.AssociatedTime = AssociatedTime
         end
 
-        if "802.11" == Host.InterfaceType then
+        if "802.11" == Host.InterfaceType or "Wireless" == Host.InterfaceType then
             Host.InterfaceType = "Wireless"
             table.insert(hosts, Host)
         end
