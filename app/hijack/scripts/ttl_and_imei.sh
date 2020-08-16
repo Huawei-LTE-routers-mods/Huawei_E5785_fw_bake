@@ -97,7 +97,7 @@ if [ "$#" -eq 1 ]; then
                 exit 0
             fi
 
-            change_imei "$NEW_IMEI"
+            change_imei "$FACTORY_IMEI"
 
             if [ $? -eq 0 ]; then
                 echo "text: Success, new IMEI:"
