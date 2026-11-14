@@ -1,10 +1,13 @@
-name: Bake Test E5785 (Phase 1)
+name: Bake Complete E5785 Firmware
 
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  bake-test:
+  bake:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -30,19 +33,17 @@ jobs:
             'https://github.com/saqie1393/qhuaweiflash/releases/download/cli-v1.0.0/qhuaweiflash-cli' \
             -o qhuaweiflash-cli
           chmod +x qhuaweiflash-cli
-          ./qhuaweiflash-cli info E5785_original.bin || true
-          ./qhuaweiflash-cli list E5785_original.bin || true
-      
+
       - name: Install Qt5 runtime libraries
         run: |
           sudo apt-get update
           sudo apt-get install -y libqt5widgets5 libqt5core5a libqt5gui5 libqt5dbus5 libqt5network5
-      
+
       - name: List partitions in E5785 firmware
         run: |
           ./qhuaweiflash-cli info E5785_original.bin
-          ./qhuaweiflash-cli list E5785_original.bin  
-      
+          ./qhuaweiflash-cli list E5785_original.bin
+
       - name: Extract System and APP as .orig.bin
         run: |
           ./qhuaweiflash-cli extract E5785_original.bin 0x00590000 System.E5785.orig.bin
@@ -60,13 +61,39 @@ jobs:
           ls -lh System.E5785.bin APP.E5785.bin
           sha256sum System.E5785.orig.bin System.E5785.bin APP.E5785.orig.bin APP.E5785.bin
 
-      - name: Upload baked partitions as artifacts
+      - name: Replace System, APP, WebUI and save final firmware
+        run: |
+          ./qhuaweiflash-cli replace E5785_original.bin 0x00590000 System.E5785.bin temp1.bin
+          ./qhuaweiflash-cli replace temp1.bin 0x005a0000 APP.E5785.bin temp2.bin
+
+          if [ -f WEBUI.E5785.bin ]; then
+            ./qhuaweiflash-cli replace temp2.bin 0x005b0000 WEBUI.E5785.bin E5785_92a_modified_21.191.63.03.375.bin
+          else
+            cp temp2.bin E5785_92a_modified_21.191.63.03.375.bin
+          fi
+
+          test -s E5785_92a_modified_21.191.63.03.375.bin
+          ls -lh E5785_92a_modified_21.191.63.03.375.bin
+          sha256sum E5785_original.bin E5785_92a_modified_21.191.63.03.375.bin
+
+      - name: Verify final firmware
+        run: |
+          ./qhuaweiflash-cli info E5785_92a_modified_21.191.63.03.375.bin
+          ./qhuaweiflash-cli list E5785_92a_modified_21.191.63.03.375.bin
+
+      - name: Upload final firmware artifact
         uses: actions/upload-artifact@v4
         with:
-          name: E5785-Baked-Partitions
+          name: E5785-Final-Firmware
           if-no-files-found: error
-          path: |
-            System.E5785.bin
-            APP.E5785.bin
-            System.E5785.orig.bin
-            APP.E5785.orig.bin
+          path: E5785_92a_modified_21.191.63.03.375.bin
+
+      - name: Upload final firmware to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v21.191.63.03.375-custom
+          name: "Modified Firmware E5785 21.191.63.03.375"
+          body: "Custom baked firmware with modified System, APP, and WebUI partitions."
+          files: E5785_92a_modified_21.191.63.03.375.bin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
