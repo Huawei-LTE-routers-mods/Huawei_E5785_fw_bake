@@ -27,7 +27,7 @@ jobs:
       - name: Download qhuaweiflash-cli
         run: |
           curl -fL --retry 3 \
-            'https://github.com/saqie1393/qhuaweiflash/releases/download/CLI_TAG/qhuaweiflash-cli' \
+            'https://github.com/saqie1393/qhuaweiflash/releases/download/cli-v1.0.0/qhuaweiflash-cli' \
             -o qhuaweiflash-cli
           chmod +x qhuaweiflash-cli
           ./qhuaweiflash-cli info E5785_original.bin || true
