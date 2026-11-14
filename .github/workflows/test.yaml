@@ -32,7 +32,12 @@ jobs:
           chmod +x qhuaweiflash-cli
           ./qhuaweiflash-cli info E5785_original.bin || true
           ./qhuaweiflash-cli list E5785_original.bin || true
-
+      
+      - name: Install Qt5 runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libqt5widgets5 libqt5core5a libqt5gui5 libqt5dbus5 libqt5network5
+          
       - name: Extract System and APP as .orig.bin
         run: |
           ./qhuaweiflash-cli extract E5785_original.bin System System.E5785.orig.bin
