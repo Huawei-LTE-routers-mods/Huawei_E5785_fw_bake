@@ -4,15 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       firmware_asset:
-        description: 'Select original firmware to download from release 1.0.0'
+        description: 'Enter exact firmware filename from release 1.0.0 (e.g., E5785_Update.bin)'
         required: true
         default: 'E5785Lh-92a_UPDATE_21.191.63.03.375_WEBUI_21.100.52.06.375_NE5.bin'
-        type: choice
-        options:
-          - E5785Lh-92a_UPDATE_21.191.63.03.375_WEBUI_21.100.52.06.375_NE5.bin
-          - E5785Lh-92a_UPDATE_21.191.63.03.1133_WEBUI_21.100.52.06.1133_NE5.bin
-          # Add more filenames here if you upload additional firmware files to release 1.0.0
-          # - another_firmware_file.bin
+        type: string
 
 permissions:
   contents: write
@@ -121,7 +116,7 @@ jobs:
           name: "Modified Firmware E5785 21.191.63.03.375"
           body: |
             Custom baked firmware with modified System, APP, and WebUI partitions.
-            
+
             Two variants are available:
             - `_zlib.bin` — compressed partitions (smaller file, recommended)
             - `_nozlib.bin` — uncompressed partitions (larger file)
