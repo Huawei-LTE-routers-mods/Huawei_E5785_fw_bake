@@ -1,0 +1,62 @@
+name: Bake Test E5785 (Phase 1)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bake-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout firmware baking repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: Download original firmware from Archive.org
+        run: |
+          curl -fL --retry 3 \
+            'https://archive.org/download/E5785/E5785Lh-92a_UPDATE_21.191.63.03.375_WEBUI_21.100.52.06.375_NE5.bin' \
+            -o E5785_original.bin
+          test -s E5785_original.bin
+          ls -lh E5785_original.bin
+
+      - name: Download qhuaweiflash-cli
+        run: |
+          curl -fL --retry 3 \
+            'https://github.com/saqie1393/qhuaweiflash/releases/download/CLI_TAG/qhuaweiflash-cli' \
+            -o qhuaweiflash-cli
+          chmod +x qhuaweiflash-cli
+          ./qhuaweiflash-cli info E5785_original.bin || true
+          ./qhuaweiflash-cli list E5785_original.bin || true
+
+      - name: Extract System and APP as .orig.bin
+        run: |
+          ./qhuaweiflash-cli extract E5785_original.bin System System.E5785.orig.bin
+          ./qhuaweiflash-cli extract E5785_original.bin APP APP.E5785.orig.bin
+          test -s System.E5785.orig.bin
+          test -s APP.E5785.orig.bin
+          ls -lh System.E5785.orig.bin APP.E5785.orig.bin
+
+      - name: Bake modified partitions
+        run: |
+          test -f baker.py
+          python3 baker.py
+          test -s System.E5785.bin
+          test -s APP.E5785.bin
+          ls -lh System.E5785.bin APP.E5785.bin
+          sha256sum System.E5785.orig.bin System.E5785.bin APP.E5785.orig.bin APP.E5785.bin
+
+      - name: Upload baked partitions as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: E5785-Baked-Partitions
+          if-no-files-found: error
+          path: |
+            System.E5785.bin
+            APP.E5785.bin
+            System.E5785.orig.bin
+            APP.E5785.orig.bin
