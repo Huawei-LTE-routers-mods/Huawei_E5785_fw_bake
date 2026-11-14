@@ -16,10 +16,10 @@ jobs:
         with:
           python-version: '3.8'
 
-      - name: Download original firmware from Archive.org
+      - name: Download original firmware from GitHub Release
         run: |
           curl -fL --retry 3 \
-            'https://archive.org/download/E5785/E5785Lh-92a_UPDATE_21.191.63.03.375_WEBUI_21.100.52.06.375_NE5.bin' \
+            'https://github.com/saqie1393/Huawei_E5785_fw_bake/releases/download/1.0.0/E5785Lh-92a_UPDATE_21.191.63.03.375_WEBUI_21.100.52.06.375_NE5.bin' \
             -o E5785_original.bin
           test -s E5785_original.bin
           ls -lh E5785_original.bin
