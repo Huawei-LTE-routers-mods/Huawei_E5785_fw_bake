@@ -45,8 +45,8 @@ jobs:
       
       - name: Extract System and APP as .orig.bin
         run: |
-          ./qhuaweiflash-cli extract E5785_original.bin System System.E5785.orig.bin
-          ./qhuaweiflash-cli extract E5785_original.bin APP APP.E5785.orig.bin
+          ./qhuaweiflash-cli extract E5785_original.bin 0x00590000 System.E5785.orig.bin
+          ./qhuaweiflash-cli extract E5785_original.bin 0x005a0000 APP.E5785.orig.bin
           test -s System.E5785.orig.bin
           test -s APP.E5785.orig.bin
           ls -lh System.E5785.orig.bin APP.E5785.orig.bin
