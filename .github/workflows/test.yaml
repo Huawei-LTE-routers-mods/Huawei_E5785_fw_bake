@@ -1,4 +1,4 @@
-name: Bake Complete E5785 Firmware
+name: Bake Complete E5785 Firmware (Both Variants)
 
 on:
   workflow_dispatch:
@@ -10,6 +10,16 @@ jobs:
   bake:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    strategy:
+      matrix:
+        include:
+          - variant: "zlib"
+            flag: "--zlib"
+            suffix: "zlib"
+          - variant: "nozlib"
+            flag: ""
+            suffix: "nozlib"
+    
     steps:
       - name: Checkout firmware baking repository
         uses: actions/checkout@v4
@@ -61,40 +71,45 @@ jobs:
           ls -lh System.E5785.bin APP.E5785.bin
           sha256sum System.E5785.orig.bin System.E5785.bin APP.E5785.orig.bin APP.E5785.bin
 
-      - name: Replace System, APP, WebUI and save final firmware
+      - name: Replace System, APP, WebUI and save final firmware (${{ matrix.variant }})
         run: |
-          ./qhuaweiflash-cli replace E5785_original.bin 0x00590000 System.E5785.bin temp1.bin --zlib
-          ./qhuaweiflash-cli replace temp1.bin 0x005a0000 APP.E5785.bin temp2.bin --zlib
+          # Har variant ke liye alag output filename
+          OUTPUT_FILE="E5785_92a_modified_21.191.63.03.375_${{ matrix.suffix }}.bin"
+          
+          ./qhuaweiflash-cli replace E5785_original.bin 0x00590000 System.E5785.bin temp1.bin ${{ matrix.flag }}
+          ./qhuaweiflash-cli replace temp1.bin 0x005a0000 APP.E5785.bin temp2.bin ${{ matrix.flag }}
 
           WEBUI_FILE="webui/WEBUI.E5785.bin"
           if [ -f "$WEBUI_FILE" ]; then
-            ./qhuaweiflash-cli replace temp2.bin 0x005b0000 "$WEBUI_FILE" E5785_92a_modified_21.191.63.03.375.bin --zlib
+            ./qhuaweiflash-cli replace temp2.bin 0x005b0000 "$WEBUI_FILE" "$OUTPUT_FILE" ${{ matrix.flag }}
           else
             echo "WARNING: $WEBUI_FILE not found, skipping WEBUI replace"
-            cp temp2.bin E5785_92a_modified_21.191.63.03.375.bin
+            cp temp2.bin "$OUTPUT_FILE"
           fi
 
-          test -s E5785_92a_modified_21.191.63.03.375.bin
-          ls -lh E5785_92a_modified_21.191.63.03.375.bin
-          sha256sum E5785_original.bin E5785_92a_modified_21.191.63.03.375.bin
-      - name: Verify final firmware
-        run: |
-          ./qhuaweiflash-cli info E5785_92a_modified_21.191.63.03.375.bin
-          ./qhuaweiflash-cli list E5785_92a_modified_21.191.63.03.375.bin
+          test -s "$OUTPUT_FILE"
+          ls -lh "$OUTPUT_FILE"
+          sha256sum E5785_original.bin "$OUTPUT_FILE"
 
-      - name: Upload final firmware artifact
+      - name: Verify final firmware (${{ matrix.variant }})
+        run: |
+          OUTPUT_FILE="E5785_92a_modified_21.191.63.03.375_${{ matrix.suffix }}.bin"
+          ./qhuaweiflash-cli info "$OUTPUT_FILE"
+          ./qhuaweiflash-cli list "$OUTPUT_FILE"
+
+      - name: Upload final firmware artifact (${{ matrix.variant }})
         uses: actions/upload-artifact@v4
         with:
-          name: E5785-Final-Firmware
+          name: E5785-Final-Firmware-${{ matrix.suffix }}
           if-no-files-found: error
-          path: E5785_92a_modified_21.191.63.03.375.bin
+          path: E5785_92a_modified_21.191.63.03.375_${{ matrix.suffix }}.bin
 
-      - name: Upload final firmware to GitHub Release
+      - name: Upload final firmware to GitHub Release (${{ matrix.variant }})
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v21.191.63.03.375-custom
           name: "Modified Firmware E5785 21.191.63.03.375"
-          body: "Custom baked firmware with modified System, APP, and WebUI partitions."
-          files: E5785_92a_modified_21.191.63.03.375.bin
+          body: "Custom baked firmware. Download either the zlib-compressed or uncompressed variant."
+          files: E5785_92a_modified_21.191.63.03.375_${{ matrix.suffix }}.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
