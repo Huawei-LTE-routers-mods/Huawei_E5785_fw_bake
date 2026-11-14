@@ -2,6 +2,16 @@ name: Bake Complete E5785 Firmware (Both Variants)
 
 on:
   workflow_dispatch:
+    inputs:
+      firmware_asset:
+        description: 'Select original firmware to download from release 1.0.0'
+        required: true
+        default: 'E5785Lh-92a_UPDATE_21.191.63.03.375_WEBUI_21.100.52.06.375_NE5.bin'
+        type: choice
+        options:
+          - E5785Lh-92a_UPDATE_21.191.63.03.375_WEBUI_21.100.52.06.375_NE5.bin
+          # Add more filenames here if you upload additional firmware files to release 1.0.0
+          # - another_firmware_file.bin
 
 permissions:
   contents: write
@@ -19,7 +29,7 @@ jobs:
           - variant: "nozlib"
             flag: ""
             suffix: "nozlib"
-    
+
     steps:
       - name: Checkout firmware baking repository
         uses: actions/checkout@v4
@@ -32,7 +42,7 @@ jobs:
       - name: Download original firmware from GitHub Release
         run: |
           curl -fL --retry 3 \
-            'https://github.com/saqie1393/Huawei_E5785_fw_bake/releases/download/1.0.0/E5785Lh-92a_UPDATE_21.191.63.03.375_WEBUI_21.100.52.06.375_NE5.bin' \
+            'https://github.com/saqie1393/Huawei_E5785_fw_bake/releases/download/1.0.0/${{ github.event.inputs.firmware_asset }}' \
             -o E5785_original.bin
           test -s E5785_original.bin
           ls -lh E5785_original.bin
@@ -49,12 +59,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libqt5widgets5 libqt5core5a libqt5gui5 libqt5dbus5 libqt5network5
 
-      - name: List partitions in E5785 firmware
+      - name: List partitions in original firmware
         run: |
           ./qhuaweiflash-cli info E5785_original.bin
           ./qhuaweiflash-cli list E5785_original.bin
 
-      - name: Extract System and APP as .orig.bin
+      - name: Extract System and APP partitions
         run: |
           ./qhuaweiflash-cli extract E5785_original.bin 0x00590000 System.E5785.orig.bin
           ./qhuaweiflash-cli extract E5785_original.bin 0x005a0000 APP.E5785.orig.bin
@@ -71,11 +81,10 @@ jobs:
           ls -lh System.E5785.bin APP.E5785.bin
           sha256sum System.E5785.orig.bin System.E5785.bin APP.E5785.orig.bin APP.E5785.bin
 
-      - name: Replace System, APP, WebUI and save final firmware (${{ matrix.variant }})
+      - name: Replace partitions and save final firmware (${{ matrix.variant }})
         run: |
-          # Har variant ke liye alag output filename
           OUTPUT_FILE="E5785_92a_modified_21.191.63.03.375_${{ matrix.suffix }}.bin"
-          
+
           ./qhuaweiflash-cli replace E5785_original.bin 0x00590000 System.E5785.bin temp1.bin ${{ matrix.flag }}
           ./qhuaweiflash-cli replace temp1.bin 0x005a0000 APP.E5785.bin temp2.bin ${{ matrix.flag }}
 
@@ -109,7 +118,12 @@ jobs:
         with:
           tag_name: v21.191.63.03.375-custom
           name: "Modified Firmware E5785 21.191.63.03.375"
-          body: "Custom baked firmware. Download either the zlib-compressed or uncompressed variant."
+          body: |
+            Custom baked firmware with modified System, APP, and WebUI partitions.
+            
+            Two variants are available:
+            - `_zlib.bin` — compressed partitions (smaller file, recommended)
+            - `_nozlib.bin` — uncompressed partitions (larger file)
           files: E5785_92a_modified_21.191.63.03.375_${{ matrix.suffix }}.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
