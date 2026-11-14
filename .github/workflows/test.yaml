@@ -63,11 +63,11 @@ jobs:
 
       - name: Replace System, APP, WebUI and save final firmware
         run: |
-          ./qhuaweiflash-cli replace E5785_original.bin 0x00590000 System.E5785.bin temp1.bin
-          ./qhuaweiflash-cli replace temp1.bin 0x005a0000 APP.E5785.bin temp2.bin
+          ./qhuaweiflash-cli replace E5785_original.bin 0x00590000 System.E5785.bin temp1.bin --zlib
+          ./qhuaweiflash-cli replace temp1.bin 0x005a0000 APP.E5785.bin temp2.bin --zlib
 
           if [ -f WEBUI.E5785.bin ]; then
-            ./qhuaweiflash-cli replace temp2.bin 0x005b0000 WEBUI.E5785.bin E5785_92a_modified_21.191.63.03.375.bin
+            ./qhuaweiflash-cli replace temp2.bin 0x005b0000 WEBUI.E5785.bin E5785_92a_modified_21.191.63.03.375.bin --zlib
           else
             cp temp2.bin E5785_92a_modified_21.191.63.03.375.bin
           fi
