@@ -42,10 +42,10 @@ jobs:
         id: extract_version
         run: |
           FILENAME="${{ github.event.inputs.firmware_asset }}"
-          # This extracts '21.191.63.03.375' or '21.191.63.03.1133' from the filename
           VERSION=$(echo "$FILENAME" | grep -oE '21\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
           echo "Detected Version: $VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          # Yeh line GitHub Action ko variable sikhane ke liye hai
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Download original firmware from GitHub Release
         run: |
@@ -91,6 +91,7 @@ jobs:
 
       - name: Replace partitions and save final firmware (${{ matrix.variant }})
         run: |
+          VERSION="${{ steps.extract_version.outputs.VERSION }}"
           OUTPUT_FILE="E5785_92a_modified_${VERSION}_${{ matrix.suffix }}.bin"
 
           ./qhuaweiflash-cli replace E5785_original.bin 0x00590000 System.E5785.bin temp1.bin ${{ matrix.flag }}
@@ -110,6 +111,7 @@ jobs:
 
       - name: Verify final firmware (${{ matrix.variant }})
         run: |
+          VERSION="${{ steps.extract_version.outputs.VERSION }}"
           OUTPUT_FILE="E5785_92a_modified_${VERSION}_${{ matrix.suffix }}.bin"
           ./qhuaweiflash-cli info "$OUTPUT_FILE"
           ./qhuaweiflash-cli list "$OUTPUT_FILE"
@@ -117,15 +119,16 @@ jobs:
       - name: Upload final firmware artifact (${{ matrix.variant }})
         uses: actions/upload-artifact@v4
         with:
-          name: E5785-Final-Firmware-${VERSION}-${{ matrix.suffix }}
+          name: E5785-Final-Firmware-${{ steps.extract_version.outputs.VERSION }}-${{ matrix.suffix }}
           if-no-files-found: error
-          path: E5785_92a_modified_${VERSION}_${{ matrix.suffix }}.bin
+          # Yahan ${VERSION} ki jagah GitHub ka format use kiya hai
+          path: E5785_92a_modified_${{ steps.extract_version.outputs.VERSION }}_${{ matrix.suffix }}.bin
 
       - name: Upload final firmware to GitHub Release (${{ matrix.variant }})
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ env.VERSION }}-custom
-          name: "Modified Firmware E5785 ${{ env.VERSION }}"
+          tag_name: v${{ steps.extract_version.outputs.VERSION }}-custom
+          name: "Modified Firmware E5785 ${{ steps.extract_version.outputs.VERSION }}"
           body: |
             Custom baked firmware with modified System, APP, and WebUI partitions.
             
@@ -134,6 +137,7 @@ jobs:
             Two variants are available:
             - `_zlib.bin` — compressed partitions (smaller file, recommended)
             - `_nozlib.bin` — uncompressed partitions (larger file)
-          files: E5785_92a_modified_${VERSION}_${{ matrix.suffix }}.bin
+          # Release upload mein bhi sahi format use kiya hai
+          files: E5785_92a_modified_${{ steps.extract_version.outputs.VERSION }}_${{ matrix.suffix }}.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
