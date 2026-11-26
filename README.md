@@ -1,40 +1,44 @@
-Huawei_E5785_fw_bake
+# Huawei_E5785_fw_bake
+
 Custom, automated firmware baker for the Huawei E5785 router.
 
 This repository contains the automated GitHub Actions build system that takes the original Huawei firmware, injects custom partitions (System, APP, and WebUI), and generates a fully modified, flash-ready firmware image.
 
-⚠️ IMPORTANT COMPATIBILITY WARNING:
-This firmware is ONLY for the E5785Lh-92a (Zain Unlocked) variant.
+## ⚠️ Important compatibility warning
+
+This firmware is **ONLY** for the **E5785Lh-92a (Zain Unlocked)** variant.
 Do NOT flash this on any other hardware revision or locked model. Flashing the wrong firmware will permanently brick your device.
 
-✨ Custom Modifications Included:
-This specific custom build is pre-configured with the following tools and modifications:
+## ✨ Custom modifications included
 
-🚀 AmneziaWG (Kernel Module) 3.1 – Added for advanced VPN configurations and deep packet inspection bypass at the kernel level.
+- 🚀 **AmneziaWG 3.1 (kernel module)** – WireGuard with traffic obfuscation, so the VPN is harder for DPI to detect and block. Use the **VPN** item in the device's script menu.
+- 🛡️ **ByeDPI** – DPI bypass for HTTP/HTTPS traffic from LAN clients. Turn it on from the **Byedpi** item in the script menu, with an optional **Start on boot** toggle. While it runs, QUIC (UDP 443) is blocked so browsers fall back to TCP and go through ByeDPI.
+- 🎨 **Modified WebUI** – A custom user interface for better control, monitoring, and management.
+- ❌ **Standard WireGuard removed** to make way for AmneziaWG.
 
-🛡️ ByeDPI – Included and pre-configured in the startup scripts for bypassing DPI restrictions.
+### Setting up the AmneziaWG VPN
 
-🎨 Modified WebUI – A custom User Interface for better control, monitoring, and management.
+1. SSH into the router and run `/etc/vpn_gen_configs.sh <your_server_ip>`.
+2. The router config is written to `/online/vpn.conf`. The script also prints the matching server config and the commands to set it up on an Ubuntu 22.04/24.04 server.
+3. On the device, open **VPN → Enable** (and optionally **Start on boot → Yes**).
 
-❌ Standard WireGuard has been removed from this build to make way for Amnezia.
+The obfuscation values (`S1`, `S2`, `H1`–`H4`) must be identical on the router and the server. The generator handles that for you.
 
-📥 How to Download the Custom Firmware (No Coding Required)
-You don't need to manually run any scripts. GitHub Actions will build the firmware for you automatically.
+## 📥 How to build and download the firmware (no coding required)
 
-Click on the "Actions" tab at the top of this repository.
+GitHub Actions builds the firmware for you.
 
-On the left sidebar, click on "Bake Complete E5785 Firmware".
+1. Open the **Actions** tab at the top of this repository.
+2. In the left sidebar, click **Bake E5785 Firmware**.
+3. Click **Run workflow**, choose the base firmware from the dropdown, and click the green **Run workflow** button.
+4. Wait for the workflow to finish (a few minutes).
 
-Click the "Run workflow" button on the right side, select the master (or main) branch, and click the green "Run workflow" button.
+Each run produces two variants:
 
-Wait for the workflow to finish (about 1-2 minutes).
+- `_zlib.bin` – compressed partitions (smaller file, recommended)
+- `_nozlib.bin` – uncompressed partitions (larger file)
 
-Once finished, you can download the final firmware from two places:
+Download them from either:
 
-GitHub Releases: Go to the "Releases" section on the right side of the main page and download the latest .bin file.
-
-Artifacts: Click on the completed workflow run, scroll down to the bottom, and download the E5785-Custom-Firmware artifact.
-
-
-
-This response is AI-generated, for reference only.
+- **Releases** – the release named after the base firmware version, on the right side of the main page.
+- **Artifacts** – open the completed workflow run and scroll to the bottom.

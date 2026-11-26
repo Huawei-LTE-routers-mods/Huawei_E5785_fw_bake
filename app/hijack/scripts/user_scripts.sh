@@ -32,25 +32,29 @@ print_scripts() {
 }
 
 mkdir -p /online/scripts
-chmod 755 /online/scripts/*.sh
 
-if [ $? -ne 0 ]; then
-    if [ ! -f /online/scripts/example.sh ]; then
-        create_example
-    fi
-    if [ ! -f /online/scripts/VPN.sh ]; then
-        create_vpn
-    fi
-    if [ ! -f /online/scripts/pinger.sh ]; then
-        create_pinger
-    fi
-    if [ ! -f /online/scripts/fix_cell.sh ]; then
-        create_fix_cell
-    fi
-    if [ ! -f /online/scripts/Byedpi.sh ]; then
-    create_byedpi
-    fi
+# Install each bundled script on its own if it is missing, so scripts added in
+# a newer firmware (e.g. Byedpi.sh) also show up for users who already have
+# older scripts in /online/scripts. Existing (possibly user-edited) copies are
+# left alone.
+[ -f /online/scripts/example.sh ]  || create_example
+[ -f /online/scripts/VPN.sh ]      || create_vpn
+[ -f /online/scripts/pinger.sh ]   || create_pinger
+[ -f /online/scripts/fix_cell.sh ] || create_fix_cell
+[ -f /online/scripts/Byedpi.sh ]   || create_byedpi
+
+# Older firmware shipped a VPN.sh that loads wireguard.ko, which this build no
+# longer has. Replace that stale copy with the AmneziaWG version.
+if grep -q "wireguard.ko" /online/scripts/VPN.sh 2>/dev/null; then
+    create_vpn
 fi
+
+# Older Byedpi.sh copies have no "Start on boot" toggle or QUIC handling.
+if ! grep -q "BOOT_ENABLE" /online/scripts/Byedpi.sh 2>/dev/null; then
+    create_byedpi
+fi
+
+chmod 755 /online/scripts/*.sh 2>/dev/null
 
 echo "text:In /online/scripts:"
 cd /online/scripts && print_scripts

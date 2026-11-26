@@ -4,6 +4,7 @@ ACTION="$1"
 
 FILE="/online/vpn.conf"
 AUTORUN_FILE="/system/etc/autorun.d/vpn.sh"
+IFACE="awg0"
 
 VPN_ON_SCRIPT="#!/bin/sh
 
@@ -13,20 +14,20 @@ if [ ! -f "${FILE}" ]; then
 fi
 
 insmod /system/modules/ip_tunnel.ko 2>/dev/null
-insmod /system/modules/wireguard.ko 2>/dev/null
+insmod /system/modules/amneziawg.ko 2>/dev/null
 
-ip link add dev wg0 type wireguard
-wg setconf wg0 "${FILE}"
-ip link set dev wg0 up
-ip route add default dev wg0 table 29500
+ip link add dev ${IFACE} type amneziawg
+awg setconf ${IFACE} "${FILE}"
+ip link set dev ${IFACE} up
+ip route add default dev ${IFACE} table 29500
 "
 
 VPN_OFF_SCRIPT="#!/bin/sh
-ip link del dev wg0
+ip link del dev ${IFACE}
 "
 
 is_vpn_up() {
-    ip route show default dev wg0 table 29500 | grep -q default
+    ip route show default dev ${IFACE} table 29500 | grep -q default
 }
 
 is_vpn_on_boot() {
@@ -35,7 +36,7 @@ is_vpn_on_boot() {
 
 case "$ACTION" in
     "")
-        echo "text:WireGuard VPN:"
+        echo "text:AmneziaWG VPN:"
         if is_vpn_up; then
             echo "item:<Enable>:VPN_ENABLE"
             echo "item:Disable:VPN_DISABLE"

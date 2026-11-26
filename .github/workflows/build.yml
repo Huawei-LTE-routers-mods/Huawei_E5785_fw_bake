@@ -1,4 +1,4 @@
-name: Bake Complete E5785 Firmware (Both Variants)
+name: Bake E5785 Firmware
 
 on:
   workflow_dispatch:
